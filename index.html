@@ -475,9 +475,8 @@
       qualityPreset: 'originalHeight',
       selectedMime: '',
       selectedExt: 'mp4',
-      bitrateMbps: 7.5,
-      targetFps: 30,
-      speedPreset: 'balanced',
+      bitrateMbps: 8.0, // 최적 균형 기본 비트레이트 자동 적용
+      targetFps: 30,    // 부드러운 표준 30fps
       renderWidth: 1440,
       renderHeight: 1080,
       isOriginalView: false,
@@ -537,15 +536,10 @@
     const modeDescription = document.getElementById('modeDescription');
     const activeModeBadge = document.getElementById('activeModeBadge');
 
-    // New Format & Speed/Size DOM
+    // Format DOM
     const formatSelect = document.getElementById('formatSelect');
     const codecSupportBadge = document.getElementById('codecSupportBadge');
     const formatDesc = document.getElementById('formatDesc');
-    const speedPresetBtns = document.querySelectorAll('.speed-preset-btn');
-    const bitrateSlider = document.getElementById('bitrateSlider');
-    const bitrateDisplay = document.getElementById('bitrateDisplay');
-    const fpsBtns = document.querySelectorAll('.fps-btn');
-    const estimatedSizeBadge = document.getElementById('estimatedSizeBadge');
 
     // 1. 호환성 높은 코덱 목록 자동 탐색 (윈도우/맥 기본 플레이어에서 지원되도록 보장)
     function initCodecSupport() {
@@ -569,12 +563,6 @@
           ext: 'mp4',
           label: 'MP4 (기본 컨테이너)',
           desc: '표준 MP4 컨테이너 형식입니다.'
-        },
-        {
-          mime: 'video/webm;codecs=h264',
-          ext: 'mp4',
-          label: 'MP4/H.264 (호환 모드)',
-          desc: '폭넓은 비디오 플레이어와 호환됩니다.'
         },
         {
           mime: 'video/webm;codecs=vp8,opus',
@@ -647,81 +635,6 @@
     }
 
     initCodecSupport();
-
-    function updateEstimatedSize() {
-      if (!estimatedSizeBadge) return;
-      if (!state.videoDuration || state.videoDuration <= 0) {
-        estimatedSizeBadge.textContent = '예상 용량: 계산 중';
-        return;
-      }
-      // 예상 용량 (MB) = (비트레이트 Mbps * 재생시간 초) / 8
-      const mb = ((state.bitrateMbps * state.videoDuration) / 8).toFixed(1);
-      estimatedSizeBadge.textContent = `예상 용량: 약 ${mb} MB`;
-    }
-
-    // 2. 인코딩 속도 및 용량 프리셋 제어
-    speedPresetBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        speedPresetBtns.forEach(b => {
-          b.className = 'speed-preset-btn py-2 px-1 rounded-xl text-center text-slate-400 hover:text-white font-medium transition-all';
-          const subText = b.querySelector('div:last-child');
-          if (subText) subText.className = 'text-[10px] text-slate-500';
-        });
-
-        btn.className = 'speed-preset-btn py-2 px-1 rounded-xl text-center bg-indigo-600 text-white font-bold transition-all shadow-md';
-        const activeSub = btn.querySelector('div:last-child');
-        if (activeSub) activeSub.className = 'text-[10px] text-indigo-200';
-
-        const preset = btn.getAttribute('data-preset');
-        state.speedPreset = preset;
-
-        if (preset === 'fast') {
-          // 초고속 모드: 가벼운 비트레이트 3.5Mbps, 24fps -> 인코딩 부하 최저, 용량 최소화
-          state.bitrateMbps = 3.5;
-          state.targetFps = 24;
-        } else if (preset === 'balanced') {
-          // 표준 권장 모드: 7.5Mbps, 30fps
-          state.bitrateMbps = 7.5;
-          state.targetFps = 30;
-        } else if (preset === 'quality') {
-          // 고화질 모드: 14Mbps, 60fps
-          state.bitrateMbps = 14;
-          state.targetFps = 60;
-        }
-
-        if (bitrateSlider) bitrateSlider.value = state.bitrateMbps;
-        if (bitrateDisplay) bitrateDisplay.textContent = `${state.bitrateMbps} Mbps`;
-
-        fpsBtns.forEach(fb => {
-          const fval = parseInt(fb.getAttribute('data-fps'), 10);
-          if (fval === state.targetFps) {
-            fb.className = 'fps-btn px-2 py-0.5 rounded text-[10px] bg-indigo-600 text-white font-bold';
-          } else {
-            fb.className = 'fps-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 hover:text-white';
-          }
-        });
-
-        updateEstimatedSize();
-      });
-    });
-
-    if (bitrateSlider) {
-      bitrateSlider.addEventListener('input', (e) => {
-        state.bitrateMbps = parseFloat(e.target.value);
-        if (bitrateDisplay) bitrateDisplay.textContent = `${state.bitrateMbps} Mbps`;
-        updateEstimatedSize();
-      });
-    }
-
-    fpsBtns.forEach(fb => {
-      fb.addEventListener('click', () => {
-        fpsBtns.forEach(b => {
-          b.className = 'fps-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 hover:text-white';
-        });
-        fb.className = 'fps-btn px-2 py-0.5 rounded text-[10px] bg-indigo-600 text-white font-bold';
-        state.targetFps = parseInt(fb.getAttribute('data-fps'), 10);
-      });
-    });
 
     function showToast(message, isError = false) {
       const toastBox = document.getElementById('toastBox');
@@ -902,7 +815,6 @@
         seekBar.value = 0;
 
         calculateOutputDimensions();
-        updateEstimatedSize();
 
         dropzone.classList.add('hidden');
         workspace.classList.remove('hidden');
@@ -1023,7 +935,6 @@
         seekBar.value = 0;
 
         calculateOutputDimensions();
-        updateEstimatedSize();
 
         dropzone.classList.add('hidden');
         if (urlInputSection) urlInputSection.classList.add('hidden');
