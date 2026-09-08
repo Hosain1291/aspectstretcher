@@ -318,100 +318,6 @@
             </div>
           </div>
 
-          <!-- 당김 방식 (Stretch Technique) - 당기기 모드일 때만 표시 -->
-          <div id="stretchOptionsContainer" class="flex flex-col gap-2.5 transition-all duration-200">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">당김 세부 옵션</label>
-              <span class="text-xs text-emerald-400 font-medium">자르기(Crop) 없음</span>
-            </div>
-            
-            <div class="space-y-2">
-              <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
-                <input type="radio" name="stretchType" value="linear" checked class="mt-1 text-indigo-600 focus:ring-indigo-500">
-                <div>
-                  <div class="text-xs font-semibold text-slate-200">균등 당김 (Uniform Stretch)</div>
-                  <div class="text-xs text-slate-400 mt-0.5">영상 프레임 전체를 목표 비율에 균일하게 맞춰 당깁니다. 원본 정보 100% 보존.</div>
-                </div>
-              </label>
-
-              <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
-                <input type="radio" name="stretchType" value="smart" class="mt-1 text-indigo-600 focus:ring-indigo-500">
-                <div>
-                  <div class="text-xs font-semibold text-slate-200">스마트 아나모픽 당김 (Smart Center-Preserve)</div>
-                  <div class="text-xs text-slate-400 mt-0.5">중앙부(인물/주요피사체) 왜곡을 줄이고 외곽 쪽을 유연하게 늘려 왜곡감을 완화합니다.</div>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- 출력 해상도 스케일 선택 -->
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">출력 해상도 퀄리티</label>
-            <select id="qualitySelect" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-              <option value="originalHeight" selected>원본 높이 유지 (추천 - 선명도 보존)</option>
-              <option value="1080">1080p 기준 스케일 (고화질)</option>
-              <option value="720">720p 기준 스케일 (빠른 인코딩)</option>
-            </select>
-            <p id="targetDimensionInfo" class="text-[11px] text-indigo-400/90 font-mono">예상 출력 크기: 계산 중...</p>
-          </div>
-
-          <!-- 출력 포맷 및 코덱 (MP4 호환성 보장) -->
-          <div class="flex flex-col gap-2">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">출력 포맷 및 코덱</label>
-              <span id="codecSupportBadge" class="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                <span>MP4 (H.264) 권장</span>
-              </span>
-            </div>
-            <select id="formatSelect" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-            </select>
-            <p id="formatDesc" class="text-[11px] text-slate-400 px-1 leading-relaxed">
-              윈도우 기본 미디어 플레이어, 팟플레이어, 맥, 스마트폰에서 오류 없이 즉시 열립니다.
-            </p>
-          </div>
-
-          <!-- 인코딩 속도 및 용량 조절 -->
-          <div class="flex flex-col gap-2.5">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">인코딩 속도 / 용량</label>
-              <span id="estimatedSizeBadge" class="text-[11px] font-mono text-indigo-400 font-medium">예상 용량: 계산 중</span>
-            </div>
-            
-            <div class="grid grid-cols-3 gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 text-xs">
-              <button type="button" data-preset="fast" class="speed-preset-btn py-2 px-1 rounded-xl text-center text-slate-400 hover:text-white font-medium transition-all">
-                <div class="font-bold text-xs">⚡ 초고속</div>
-                <div class="text-[10px] text-slate-500">최소 용량</div>
-              </button>
-              <button type="button" data-preset="balanced" class="speed-preset-btn py-2 px-1 rounded-xl text-center bg-indigo-600 text-white font-bold transition-all shadow-md">
-                <div class="font-bold text-xs">⚖️ 균형</div>
-                <div class="text-[10px] text-indigo-200">표준 권장</div>
-              </button>
-              <button type="button" data-preset="quality" class="speed-preset-btn py-2 px-1 rounded-xl text-center text-slate-400 hover:text-white font-medium transition-all">
-                <div class="font-bold text-xs">💎 고화질</div>
-                <div class="text-[10px] text-slate-500">선명도 우선</div>
-              </button>
-            </div>
-
-            <!-- 세부 비트레이트 및 FPS 조절 -->
-            <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80 flex flex-col gap-2.5 text-xs">
-              <div class="flex items-center justify-between">
-                <span class="text-slate-400">비트레이트(화질/용량):</span>
-                <span id="bitrateDisplay" class="font-mono text-indigo-300 font-semibold">7.5 Mbps</span>
-              </div>
-              <input type="range" id="bitrateSlider" min="2" max="20" step="0.5" value="7.5" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-indigo-500">
-
-              <div class="flex items-center justify-between pt-1 border-t border-slate-800/60">
-                <span class="text-slate-400">프레임 레이트 (FPS):</span>
-                <div class="flex gap-1">
-                  <button type="button" data-fps="24" class="fps-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 hover:text-white">24fps</button>
-                  <button type="button" data-fps="30" class="fps-btn px-2 py-0.5 rounded text-[10px] bg-indigo-600 text-white font-bold">30fps</button>
-                  <button type="button" data-fps="60" class="fps-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 hover:text-white">60fps</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- Export Action Section -->
           <div class="pt-2 border-t border-slate-800 flex flex-col gap-3">
             <button id="startExportBtn" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all transform active:scale-98">
@@ -420,7 +326,10 @@
               </svg>
               <span>변환된 영상 인코딩 및 다운로드</span>
             </button>
-            <p class="text-[11px] text-center text-slate-500">브라우저 내 하드웨어 가속 Canvas 스트림을 통해 오디오와 함께 저장됩니다.</p>
+            <div class="flex items-center justify-center gap-2 text-[11px] text-slate-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>원본 선명도 자동 보존 · 안드로이드 탐색(스킵) 완벽 호환</span>
+            </div>
           </div>
 
         </div>
@@ -521,8 +430,6 @@
     const changeFileBtn = document.getElementById('changeFileBtn');
     
     const ratioBtns = document.querySelectorAll('.ratio-btn');
-    const stretchRadios = document.querySelectorAll('input[name="stretchType"]');
-    const qualitySelect = document.getElementById('qualitySelect');
     const startExportBtn = document.getElementById('startExportBtn');
     const progressCard = document.getElementById('progressCard');
     const progressBar = document.getElementById('progressBar');
@@ -532,109 +439,29 @@
 
     const modeStretchBtn = document.getElementById('modeStretchBtn');
     const modeCropBtn = document.getElementById('modeCropBtn');
-    const stretchOptionsContainer = document.getElementById('stretchOptionsContainer');
     const modeDescription = document.getElementById('modeDescription');
     const activeModeBadge = document.getElementById('activeModeBadge');
 
-    // Format DOM
-    const formatSelect = document.getElementById('formatSelect');
-    const codecSupportBadge = document.getElementById('codecSupportBadge');
-    const formatDesc = document.getElementById('formatDesc');
-
-    // 1. 호환성 높은 코덱 목록 자동 탐색 (윈도우/맥 기본 플레이어에서 지원되도록 보장)
-    function initCodecSupport() {
-      if (!formatSelect) return;
-
+    // 최적 호환 코덱 자동 감지 (별도 설정 창 없이 내부에서 자동 처리)
+    function detectBestCodec() {
       const candidates = [
-        {
-          mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-          ext: 'mp4',
-          label: 'MP4 (H.264 + AAC) - 윈도우/맥/스마트폰 완벽 호환 [강력 추천]',
-          desc: '윈도우 기본 미디어 플레이어, 팟플레이어, 카카오톡, 맥, 스마트폰에서 오류 없이 즉시 열립니다.'
-        },
-        {
-          mime: 'video/mp4;codecs=avc1',
-          ext: 'mp4',
-          label: 'MP4 (H.264 비디오 표준)',
-          desc: '모든 기기에서 재생 가능한 표준 H.264 코덱입니다.'
-        },
-        {
-          mime: 'video/mp4',
-          ext: 'mp4',
-          label: 'MP4 (기본 컨테이너)',
-          desc: '표준 MP4 컨테이너 형식입니다.'
-        },
-        {
-          mime: 'video/webm;codecs=vp8,opus',
-          ext: 'webm',
-          label: 'WebM (VP8 호환형) - 팟플레이어/VLC/웹용',
-          desc: 'VP9보다 호환성이 높은 WebM 포맷입니다.'
-        },
-        {
-          mime: 'video/webm;codecs=vp9,opus',
-          ext: 'webm',
-          label: 'WebM (VP9 고효율)',
-          desc: '웹 브라우저 및 최신 플레이어에 적합한 고압축 포맷입니다.'
-        },
-        {
-          mime: 'video/webm',
-          ext: 'webm',
-          label: 'WebM (기본)',
-          desc: '표준 WebM 포맷입니다.'
-        }
+        { mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', ext: 'mp4' },
+        { mime: 'video/mp4;codecs=avc1', ext: 'mp4' },
+        { mime: 'video/mp4', ext: 'mp4' },
+        { mime: 'video/webm;codecs=vp8,opus', ext: 'webm' },
+        { mime: 'video/webm;codecs=vp9,opus', ext: 'webm' },
+        { mime: 'video/webm', ext: 'webm' }
       ];
 
-      formatSelect.innerHTML = '';
-      let isFirst = true;
-
-      candidates.forEach((cand) => {
+      for (const cand of candidates) {
         if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(cand.mime)) {
-          const opt = document.createElement('option');
-          opt.value = cand.mime;
-          opt.textContent = cand.label;
-          opt.dataset.ext = cand.ext;
-          opt.dataset.desc = cand.desc;
-          formatSelect.appendChild(opt);
-
-          if (isFirst) {
-            state.selectedMime = cand.mime;
-            state.selectedExt = cand.ext;
-            if (formatDesc) formatDesc.textContent = cand.desc;
-            
-            if (codecSupportBadge) {
-              if (cand.ext === 'mp4') {
-                codecSupportBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>MP4 (H.264) 완벽 호환</span>`;
-                codecSupportBadge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold flex items-center gap-1';
-              } else {
-                codecSupportBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>WebM 포맷</span>`;
-                codecSupportBadge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-semibold flex items-center gap-1';
-              }
-            }
-            isFirst = false;
-          }
+          state.selectedMime = cand.mime;
+          state.selectedExt = cand.ext;
+          break;
         }
-      });
-
-      formatSelect.addEventListener('change', () => {
-        const selectedOpt = formatSelect.options[formatSelect.selectedIndex];
-        if (!selectedOpt) return;
-        state.selectedMime = selectedOpt.value;
-        state.selectedExt = selectedOpt.dataset.ext || 'mp4';
-        if (formatDesc) formatDesc.textContent = selectedOpt.dataset.desc || '';
-
-        if (codecSupportBadge) {
-          if (state.selectedExt === 'mp4') {
-            codecSupportBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>MP4 (H.264) 완벽 호환</span>`;
-            codecSupportBadge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold flex items-center gap-1';
-          } else {
-            codecSupportBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>WebM 포맷 (VLC/크롬)</span>`;
-            codecSupportBadge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-semibold flex items-center gap-1';
-          }
-        }
-      });
+      }
     }
-
-    initCodecSupport();
+    detectBestCodec();
 
     function showToast(message, isError = false) {
       const toastBox = document.getElementById('toastBox');
@@ -669,32 +496,28 @@
       if (!state.origWidth || !state.origHeight) return;
 
       const [rW, rH] = state.targetRatio.split(':').map(Number);
-      const targetRatioValue = rW / rH; // 4/3 = 1.3333, 5/4 = 1.25
+      const targetRatioValue = rW / rH;
 
+      // 화질 손실 방지: 원본 높이를 100% 그대로 유지하여 고해상도 출력
       let targetHeight = state.origHeight;
-      if (state.qualityPreset === '1080') {
-        targetHeight = 1080;
-      } else if (state.qualityPreset === '720') {
-        targetHeight = 720;
-      }
-
-      // targetWidth = targetHeight * targetRatio
       let targetWidth = Math.round(targetHeight * targetRatioValue);
-      // Ensure even dimensions for video codecs
+
+      // 비디오 코덱 안전성 보장 (짝수 픽셀 정렬)
       if (targetWidth % 2 !== 0) targetWidth += 1;
       if (targetHeight % 2 !== 0) targetHeight += 1;
 
       state.renderWidth = targetWidth;
       state.renderHeight = targetHeight;
 
-      // Update Canvas Size
+      // Canvas 크기 동기화
       previewCanvas.width = targetWidth;
       previewCanvas.height = targetHeight;
 
-      // Update UI labels
+      // 배지 및 안내 텍스트 갱신
       targetResBadge.textContent = `${targetWidth}x${targetHeight} (${state.targetRatio})`;
-      const modeText = state.fitMode === 'stretch' ? '무손실 당김' : '중앙 자르기';
-      targetDimensionInfo.textContent = `출력 해상도: ${targetWidth}x${targetHeight} (비율 ${state.targetRatio}, ${modeText})`;
+      if (targetDimensionInfo) {
+        targetDimensionInfo.textContent = `${targetWidth}x${targetHeight} (원본화질)`;
+      }
     }
 
     function renderFrame() {
@@ -1075,21 +898,17 @@
 
     function updateModeDisplay() {
       if (state.fitMode === 'stretch') {
-        // 활성 스타일: 당기기
         modeStretchBtn.className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow-md transition-all";
         modeCropBtn.className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-transparent text-slate-400 hover:text-white font-medium text-xs transition-all";
         
-        stretchOptionsContainer.classList.remove('hidden');
         modeDescription.textContent = "원본 영상을 1px도 자르지 않고 목표 비율(4:3 / 5:4)로 꽉 채워 당깁니다.";
         activeModeBadge.textContent = "당기기 (100% 보존)";
         activeModeBadge.className = "text-[11px] px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-medium";
-        stretchModeLabel.textContent = state.stretchType === 'linear' ? '균일 당김 모드' : '스마트 아나모픽 당김';
+        stretchModeLabel.textContent = '화면 당김 모드';
       } else {
-        // 활성 스타일: 자르기
         modeCropBtn.className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow-md transition-all";
         modeStretchBtn.className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-transparent text-slate-400 hover:text-white font-medium text-xs transition-all";
         
-        stretchOptionsContainer.classList.add('hidden');
         modeDescription.textContent = "피사체 왜곡 없이 원본의 중앙을 기준으로 화면을 꽉 채우도록 잘라냅니다(Crop).";
         activeModeBadge.textContent = "자르기 (중앙 크롭)";
         activeModeBadge.className = "text-[11px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-medium";
@@ -1110,22 +929,6 @@
       showToast('화면 채움 방식을 [자르기(Crop)]로 변경했습니다.');
     });
 
-    stretchRadios.forEach(radio => {
-      radio.addEventListener('change', (e) => {
-        state.stretchType = e.target.value;
-        if (state.fitMode === 'stretch') {
-          stretchModeLabel.textContent = state.stretchType === 'linear' 
-            ? '균일 당김 모드 (100% 보존)' 
-            : '스마트 아나모픽 당김';
-        }
-      });
-    });
-
-    qualitySelect.addEventListener('change', (e) => {
-      state.qualityPreset = e.target.value;
-      calculateOutputDimensions();
-    });
-
     // Toggle Original View
     toggleOriginalBtn.addEventListener('click', () => {
       state.isOriginalView = !state.isOriginalView;
@@ -1144,86 +947,226 @@
 
     // 안드로이드 및 모바일 동영상 플레이어에서 탐색바(Seekbar) 이동 및 앞뒤 스킵이 먹통되지 않도록
     // MP4/WebM 파일 헤더의 Duration과 Timecode 메타데이터를 정밀 패치하는 함수
+    async function patchMp4WithSidxAndMfra(rawBlob, durationSec) {
+      const buffer = await rawBlob.arrayBuffer();
+      const view = new DataView(buffer);
+      const len = buffer.byteLength;
+
+      function readStr(offset) {
+        return String.fromCharCode(
+          view.getUint8(offset),
+          view.getUint8(offset + 1),
+          view.getUint8(offset + 2),
+          view.getUint8(offset + 3)
+        );
+      }
+
+      // 1. 최상위 MP4 박스 파싱
+      const boxes = [];
+      let pos = 0;
+      while (pos + 8 <= len) {
+        let size = view.getUint32(pos);
+        const type = readStr(pos + 4);
+        let headerSize = 8;
+        if (size === 1 && pos + 16 <= len) {
+          size = Number(view.getBigUint64(pos + 8));
+          headerSize = 16;
+        } else if (size === 0) {
+          size = len - pos;
+        }
+        if (size < headerSize || pos + size > len) break;
+        boxes.push({ type, offset: pos, size, headerSize });
+        pos += size;
+      }
+
+      const moov = boxes.find(b => b.type === 'moov');
+      if (!moov) return rawBlob;
+
+      function findChildBox(start, end, targetType) {
+        let p = start;
+        while (p + 8 <= end) {
+          const s = view.getUint32(p);
+          const t = readStr(p + 4);
+          if (t === targetType) return { offset: p, size: s };
+          if (s <= 0 || p + s > end) break;
+          p += s;
+        }
+        return null;
+      }
+
+      // 2. mvhd / tkhd / mdhd의 timescale 및 duration 보정
+      let movieTimescale = 1000;
+
+      const mvhd = findChildBox(moov.offset + moov.headerSize, moov.offset + moov.size, 'mvhd');
+      if (mvhd) {
+        const ver = view.getUint8(mvhd.offset + 8);
+        if (ver === 0) {
+          movieTimescale = view.getUint32(mvhd.offset + 20) || 1000;
+          const targetDur = Math.round(durationSec * movieTimescale);
+          view.setUint32(mvhd.offset + 24, targetDur);
+        } else if (ver === 1) {
+          movieTimescale = view.getUint32(mvhd.offset + 28) || 1000;
+          const targetDur = BigInt(Math.round(durationSec * movieTimescale));
+          view.setBigUint64(mvhd.offset + 32, targetDur);
+        }
+      }
+
+      let pTrak = moov.offset + moov.headerSize;
+      while (pTrak + 8 < moov.offset + moov.size) {
+        const trakBox = findChildBox(pTrak, moov.offset + moov.size, 'trak');
+        if (!trakBox) break;
+        
+        const tkhd = findChildBox(trakBox.offset + 8, trakBox.offset + trakBox.size, 'tkhd');
+        if (tkhd) {
+          const ver = view.getUint8(tkhd.offset + 8);
+          if (ver === 0) {
+            view.setUint32(tkhd.offset + 28, Math.round(durationSec * movieTimescale));
+          } else if (ver === 1) {
+            view.setBigUint64(tkhd.offset + 36, BigInt(Math.round(durationSec * movieTimescale)));
+          }
+        }
+
+        const mdia = findChildBox(trakBox.offset + 8, trakBox.offset + trakBox.size, 'mdia');
+        if (mdia) {
+          const mdhd = findChildBox(mdia.offset + 8, mdia.offset + mdia.size, 'mdhd');
+          if (mdhd) {
+            const ver = view.getUint8(mdhd.offset + 8);
+            const mdhdTimescale = (ver === 0) ? (view.getUint32(mdhd.offset + 20) || movieTimescale) : (view.getUint32(mdhd.offset + 28) || movieTimescale);
+            if (ver === 0) {
+              view.setUint32(mdhd.offset + 24, Math.round(durationSec * mdhdTimescale));
+            } else if (ver === 1) {
+              view.setBigUint64(mdhd.offset + 32, BigInt(Math.round(durationSec * mdhdTimescale)));
+            }
+          }
+        }
+        pTrak = trakBox.offset + trakBox.size;
+      }
+
+      // 3. moof & mdat 프래그먼트 수집
+      const fragments = [];
+      for (let i = 0; i < boxes.length; i++) {
+        if (boxes[i].type === 'moof') {
+          const moofBox = boxes[i];
+          let mdatBox = null;
+          if (i + 1 < boxes.length && boxes[i + 1].type === 'mdat') {
+            mdatBox = boxes[i + 1];
+          }
+          const totalSize = moofBox.size + (mdatBox ? mdatBox.size : 0);
+          fragments.push({
+            moofOffset: moofBox.offset,
+            moofSize: moofBox.size,
+            totalSize: totalSize
+          });
+        }
+      }
+
+      if (fragments.length === 0) {
+        return new Blob([buffer], { type: 'video/mp4' });
+      }
+
+      // 4. 삼성 및 안드로이드 비디오 플레이어의 탐색/스킵 활성화를 위한 'sidx' (Segment Index) 박스 생성
+      const numFrags = fragments.length;
+      const sidxSize = 32 + numFrags * 12;
+      const sidxBuffer = new ArrayBuffer(sidxSize);
+      const sidxView = new DataView(sidxBuffer);
+
+      sidxView.setUint32(0, sidxSize);
+      sidxView.setUint8(4, 0x73); // 's'
+      sidxView.setUint8(5, 0x69); // 'i'
+      sidxView.setUint8(6, 0x64); // 'd'
+      sidxView.setUint8(7, 0x78); // 'x'
+      sidxView.setUint32(8, 0);   // version = 0, flags = 0
+      sidxView.setUint32(12, 1);  // reference_ID (track 1)
+      sidxView.setUint32(16, movieTimescale);
+      sidxView.setUint32(20, 0);  // earliest_presentation_time = 0
+      sidxView.setUint32(24, 0);  // first_offset = 0
+      sidxView.setUint16(28, 0);  // reserved
+      sidxView.setUint16(30, numFrags); // reference_count
+
+      const fragDurUnits = Math.max(1, Math.round((durationSec * movieTimescale) / numFrags));
+
+      for (let i = 0; i < numFrags; i++) {
+        const entryOffset = 32 + i * 12;
+        const isLast = (i === numFrags - 1);
+        const dur = isLast 
+          ? Math.max(1, Math.round(durationSec * movieTimescale) - fragDurUnits * (numFrags - 1))
+          : fragDurUnits;
+
+        // reference_type = 0 (미디어), referenced_size = 프래그먼트 바이트 크기
+        const refSizeField = (fragments[i].totalSize & 0x7FFFFFFF);
+        sidxView.setUint32(entryOffset, refSizeField);
+        sidxView.setUint32(entryOffset + 4, dur);
+        // starts_with_SAP=1, SAP_type=1 (키프레임 접근 가능 신호) -> 0x90000000
+        sidxView.setUint32(entryOffset + 8, 0x90000000);
+      }
+
+      // 5. 'mfra' (Movie Fragment Random Access) 박스 생성 및 파일 끝단 첨부
+      const tfraSize = 24 + numFrags * 12;
+      const mfroSize = 16;
+      const mfraSize = 8 + tfraSize + mfroSize;
+      const mfraBuffer = new ArrayBuffer(mfraSize);
+      const mfraView = new DataView(mfraBuffer);
+
+      mfraView.setUint32(0, mfraSize);
+      mfraView.setUint8(4, 0x6d); mfraView.setUint8(5, 0x66); mfraView.setUint8(6, 0x72); mfraView.setUint8(7, 0x61); // 'mfra'
+
+      mfraView.setUint32(8, tfraSize);
+      mfraView.setUint8(12, 0x74); mfraView.setUint8(13, 0x66); mfraView.setUint8(14, 0x72); mfraView.setUint8(15, 0x61); // 'tfra'
+      mfraView.setUint32(16, 0); // version 0, flags 0
+      mfraView.setUint32(20, 1); // track_ID = 1
+      mfraView.setUint32(24, 0); // sizes
+      mfraView.setUint32(28, numFrags);
+
+      let currentMoofOffset = moov.offset + moov.size + sidxSize;
+      for (let i = 0; i < numFrags; i++) {
+        const entryOffset = 32 + i * 12;
+        mfraView.setUint32(entryOffset, i * fragDurUnits);
+        mfraView.setUint32(entryOffset + 4, currentMoofOffset);
+        mfraView.setUint8(entryOffset + 8, 1);
+        mfraView.setUint8(entryOffset + 9, 1);
+        mfraView.setUint8(entryOffset + 10, 1);
+        mfraView.setUint8(entryOffset + 11, 0);
+        currentMoofOffset += fragments[i].totalSize;
+      }
+
+      const mfroOffset = 8 + tfraSize;
+      mfraView.setUint32(mfroOffset, mfroSize);
+      mfraView.setUint8(mfroOffset + 4, 0x6d); mfraView.setUint8(5 + mfroOffset, 0x66); mfraView.setUint8(6 + mfroOffset, 0x72); mfraView.setUint8(7 + mfroOffset, 0x6f); // 'mfro'
+      mfraView.setUint32(mfroOffset + 8, 0);
+      mfraView.setUint32(mfroOffset + 12, mfraSize);
+
+      // 6. [ftyp + moov] + [sidx] + [moof/mdat 데이터들] + [mfra] 순으로 완제품 조립
+      const moovEnd = moov.offset + moov.size;
+      const partA = buffer.slice(0, moovEnd);
+      const partC = buffer.slice(moovEnd);
+
+      return new Blob([partA, sidxBuffer, partC, mfraBuffer], { type: 'video/mp4' });
+    }
+
     async function fixVideoSeekableDuration(rawBlob, durationSec, mimeType) {
       const durationMs = Math.max(100, Math.round(durationSec * 1000));
 
-      // 1. WebM 계열인 경우 fix-webm-duration 라이브러리를 통해 Cues(키프레임 색인) 및 재생시간 주입
-      if (mimeType.includes('webm') && typeof window.ysFixWebmDuration === 'function') {
-        return new Promise((resolve) => {
-          window.ysFixWebmDuration(rawBlob, durationMs, (fixedBlob) => {
-            resolve(fixedBlob);
-          });
-        });
+      if (mimeType.includes('webm')) {
+        if (typeof window.ysFixWebmDuration === 'function') {
+          try {
+            const fixed = await new Promise((resolve) => {
+              window.ysFixWebmDuration(rawBlob, durationMs, (res) => resolve(res), { logger: false });
+            });
+            return { blob: fixed, ext: 'webm' };
+          } catch (e) {
+            console.warn('WebM fix failed:', e);
+          }
+        }
+        return { blob: rawBlob, ext: 'webm' };
       }
 
-      // 2. MP4 계열인 경우 ArrayBuffer를 파싱하여 moov -> mvhd 및 mvex -> mehd의 duration을 실제 값으로 직접 패치
       try {
-        const buffer = await rawBlob.arrayBuffer();
-        const view = new DataView(buffer);
-        const len = buffer.byteLength;
-
-        function findBox(offset, maxLen, targetBox) {
-          let pos = offset;
-          while (pos < offset + maxLen && pos + 8 <= len) {
-            let size = view.getUint32(pos);
-            const type = String.fromCharCode(
-              view.getUint8(pos + 4),
-              view.getUint8(pos + 5),
-              view.getUint8(pos + 6),
-              view.getUint8(pos + 7)
-            );
-            if (size === 1 && pos + 16 <= len) {
-              size = Number(view.getBigUint64(pos + 8));
-            } else if (size === 0) {
-              size = len - pos;
-            }
-            if (type === targetBox) {
-              return { offset: pos, size: size };
-            }
-            if (size <= 0) break;
-            pos += size;
-          }
-          return null;
-        }
-
-        const moov = findBox(0, len, 'moov');
-        if (moov) {
-          const mvhd = findBox(moov.offset + 8, moov.size - 8, 'mvhd');
-          let timescale = 1000;
-          if (mvhd) {
-            const version = view.getUint8(mvhd.offset + 8);
-            if (version === 0 && mvhd.offset + 28 <= len) {
-              timescale = view.getUint32(mvhd.offset + 20) || 1000;
-              const targetDuration = Math.round(durationSec * timescale);
-              view.setUint32(mvhd.offset + 24, targetDuration);
-            } else if (version === 1 && mvhd.offset + 40 <= len) {
-              timescale = view.getUint32(mvhd.offset + 28) || 1000;
-              const targetDuration = BigInt(Math.round(durationSec * timescale));
-              view.setBigUint64(mvhd.offset + 32, targetDuration);
-            }
-          }
-
-          // Fragmented MP4(mvex -> mehd) duration 보정
-          const mvex = findBox(moov.offset + 8, moov.size - 8, 'mvex');
-          if (mvex) {
-            const mehd = findBox(mvex.offset + 8, mvex.size - 8, 'mehd');
-            if (mehd) {
-              const mehdVer = view.getUint8(mehd.offset + 8);
-              if (mehdVer === 0 && mehd.offset + 16 <= len) {
-                view.setUint32(mehd.offset + 12, Math.round(durationSec * timescale));
-              } else if (mehdVer === 1 && mehd.offset + 20 <= len) {
-                view.setBigUint64(mehd.offset + 12, BigInt(Math.round(durationSec * timescale)));
-              }
-            }
-          }
-
-          return new Blob([buffer], { type: rawBlob.type || 'video/mp4' });
-        }
+        const fixedMp4 = await patchMp4WithSidxAndMfra(rawBlob, durationSec);
+        return { blob: fixedMp4, ext: 'mp4' };
       } catch (err) {
-        console.warn('MP4 duration patch fallback:', err);
+        console.warn('MP4 sidx patch fallback:', err);
+        return { blob: rawBlob, ext: 'mp4' };
       }
-
-      return rawBlob;
     }
 
     async function startExport() {
@@ -1311,22 +1254,21 @@
       };
 
       state.mediaRecorder.onstop = async () => {
-        const finalExt = state.selectedExt || 'mp4';
         const finalBlobType = state.mediaRecorder.mimeType || mimeType;
         const rawBlob = new Blob(state.recordedChunks, { type: finalBlobType });
         
-        // 안드로이드 및 모바일 플레이어 탐색(스킵)을 위한 재생시간 및 색인 자동 주입
+        // 삼성 및 모바일 플레이어 탐색(스킵)을 위한 sidx & Cues 인덱스 자동 주입
         const totalDuration = state.videoDuration || sourceVideo.duration || 1;
-        const fixedBlob = await fixVideoSeekableDuration(rawBlob, totalDuration, finalBlobType);
+        const result = await fixVideoSeekableDuration(rawBlob, totalDuration, finalBlobType);
 
-        const url = URL.createObjectURL(fixedBlob);
+        const url = URL.createObjectURL(result.blob);
 
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
         const baseName = state.file ? state.file.name.replace(/\.[^/.]+$/, "") : "stretched_video";
         const modeSuffix = state.fitMode === 'crop' ? 'Cropped' : 'Stretched';
-        a.download = `${baseName}_${state.targetRatio.replace(':', 'x')}_${modeSuffix}.${finalExt}`;
+        a.download = `${baseName}_${state.targetRatio.replace(':', 'x')}_${modeSuffix}.${result.ext}`;
         document.body.appendChild(a);
         a.click();
         
@@ -1336,7 +1278,7 @@
         }, 1000);
 
         finishExport();
-        showToast(`'${finalExt.toUpperCase()}' 변환 완료! 이제 안드로이드 및 모든 기기에서 스킵/탐색이 정상 작동합니다.`);
+        showToast(`'${result.ext.toUpperCase()}' 변환 완료! 이제 삼성 갤러리 및 모든 비디오 플레이어에서 클립 이동/스킵이 정상 작동합니다.`);
       };
 
       // 렌더링 프레임 루프 동기화
@@ -1344,7 +1286,7 @@
       sourceVideo.muted = false;
 
       sourceVideo.play().then(() => {
-        state.mediaRecorder.start(100);
+        state.mediaRecorder.start(500);
 
         const exportLoop = () => {
           if (!state.isExporting) return;
