@@ -1,0 +1,844 @@
+html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AspectStretcher - 영상 4:3 / 5:4 무손실 당김 변환기</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Pre-tendard font-family -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans KR', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* 커스텀 스크롤바 및 슬라이더 스타일 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    input[type=range] {
+      accent-color: #6366f1;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .checkerboard {
+      background-image: linear-gradient(45deg, #1e293b 25%, transparent 25%), 
+                        linear-gradient(-45deg, #1e293b 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #1e293b 75%), 
+                        linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+  <header class="border-b border-slate-800/80 bg-slate-900/60 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <!-- Aspect Ratio Icon -->
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+              AspectStretcher
+            </h1>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">Non-Crop</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">영상을 잘라내지 않고 4:3 / 5:4 비율로 꽉 채워 당겨주는 모던 변환기</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 text-xs text-slate-400">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          브라우저 로컬 안전 렌더링
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+
+    <!-- Upload Dropzone (초기 상태) -->
+    <div id="dropzone" class="relative group cursor-pointer transition-all duration-300">
+      <input type="file" id="videoInput" accept="video/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+      <div class="glass-panel border-2 border-dashed border-slate-700 group-hover:border-indigo-500 rounded-3xl p-8 sm:p-12 text-center transition-all bg-gradient-to-b from-slate-900/40 to-slate-900/80 group-hover:bg-indigo-950/20">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-1">변환할 비디오를 드래그하거나 클릭하여 선택</h3>
+        <p class="text-sm text-slate-400 max-w-md mx-auto mb-4">
+          16:9, 21:9 울트라와이드 또는 세로 9:16 등 어떤 비율이든 지원하며 자르지 않고 온전하게 4:3 또는 5:4 비율로 변환합니다.
+        </p>
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/90 text-xs font-semibold text-slate-300 border border-slate-700 group-hover:border-indigo-500/50">
+          <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          MP4, WebM, MOV 파일 지원
+        </div>
+      </div>
+    </div>
+
+    <div id="workspace" class="hidden flex-col lg:flex-row gap-6">
+      
+      <!-- Left: Video Preview & Canvas Display -->
+      <div class="flex-1 flex flex-col gap-4">
+        <!-- Canvas Monitor Card -->
+        <div class="glass-panel rounded-3xl p-4 sm:p-5 flex flex-col gap-4">
+          <!-- Monitor Header with Metadata -->
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+              <span id="fileNameDisplay" class="font-medium text-sm text-slate-200 truncate max-w-[200px] sm:max-w-xs">video.mp4</span>
+              <span id="sourceResBadge" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 font-mono">1920x1080 (16:9)</span>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-400">목표:</span>
+              <span id="targetResBadge" class="text-xs px-2.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold font-mono">1440x1080 (4:3)</span>
+            </div>
+          </div>
+
+          <!-- Video Viewport Frame -->
+          <div class="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center checkerboard border border-slate-800/80 shadow-inner">
+            <!-- Hidden native video for source decoding -->
+            <video id="sourceVideo" class="hidden" playsinline crossorigin="anonymous"></video>
+            
+            <!-- Processed Interactive Canvas -->
+            <canvas id="previewCanvas" class="max-h-full max-w-full object-contain transition-all duration-200 rounded-lg shadow-2xl"></canvas>
+
+            <!-- Mode Watermark / Overlay Tag -->
+            <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-mono text-slate-300 border border-slate-700/50 flex items-center gap-2 pointer-events-none">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span id="stretchModeLabel">스트레치 당김 모드</span>
+            </div>
+          </div>
+
+          <!-- Player Controls Bar -->
+          <div class="flex flex-col gap-2 pt-1">
+            <!-- Seekbar -->
+            <div class="flex items-center gap-3">
+              <span id="timeCurrent" class="text-xs font-mono text-slate-400 w-12 text-right">0:00</span>
+              <input type="range" id="seekBar" min="0" max="100" value="0" step="0.05" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-indigo-500">
+              <span id="timeDuration" class="text-xs font-mono text-slate-400 w-12">0:00</span>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex items-center justify-between mt-1">
+              <div class="flex items-center gap-2">
+                <button id="playPauseBtn" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-medium text-xs flex items-center gap-2 transition-all">
+                  <svg id="playIcon" class="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  <svg id="pauseIcon" class="w-4 h-4 text-indigo-400 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                  <span id="playPauseText">재생</span>
+                </button>
+
+                <button id="restartBtn" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition-all" title="처음부터">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                </button>
+
+                <!-- Mute / Volume -->
+                <div class="flex items-center gap-1.5 ml-2">
+                  <button id="volumeBtn" class="text-slate-400 hover:text-slate-200">
+                    <svg id="volHighIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                  </button>
+                  <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8" class="w-16 h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-indigo-500">
+                </div>
+              </div>
+
+              <!-- Original vs Stretched quick toggle button -->
+              <button id="toggleOriginalBtn" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1.5 border border-slate-700">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                <span>원본 비교</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Conversion Settings & Export Panel -->
+      <div class="w-full lg:w-96 flex flex-col gap-5">
+        
+        <!-- Setting Card -->
+        <div class="glass-panel rounded-3xl p-5 sm:p-6 flex flex-col gap-6">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 class="font-bold text-base text-white flex items-center gap-2">
+              <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              비율 변환 옵션
+            </h2>
+            <button id="changeFileBtn" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">다른 영상 선택</button>
+          </div>
+
+          <!-- Target Ratio Selection: 4:3 vs 5:4 -->
+          <div class="flex flex-col gap-2.5">
+            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">목표 화면 비율 (Target Ratio)</label>
+            <div class="grid grid-cols-2 gap-3">
+              <!-- 4:3 Option -->
+              <button type="button" data-ratio="4:3" class="ratio-btn group relative p-3.5 rounded-2xl border-2 border-indigo-600 bg-indigo-600/15 text-left transition-all">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-base font-extrabold text-white">4 : 3</span>
+                  <span class="w-4 h-4 rounded-full border-2 border-indigo-500 bg-indigo-500 flex items-center justify-center check-dot">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                  </span>
+                </div>
+                <p class="text-xs text-slate-400 group-hover:text-slate-300">클래식 CRT / SD / 1.33:1 규격</p>
+              </button>
+
+              <!-- 5:4 Option -->
+              <button type="button" data-ratio="5:4" class="ratio-btn group relative p-3.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-base font-extrabold text-white">5 : 4</span>
+                  <span class="w-4 h-4 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
+                    <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
+                  </span>
+                </div>
+                <p class="text-xs text-slate-400 group-hover:text-slate-300">1280x1024 모니터 / 1.25:1 규격</p>
+              </button>
+            </div>
+          </div>
+
+          <!-- 당김 방식 (Stretch Technique) -->
+          <div class="flex flex-col gap-2.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">당김 방식 (Stretch Type)</label>
+              <span class="text-xs text-emerald-400 font-medium">자르기(Crop) 없음</span>
+            </div>
+            
+            <div class="space-y-2">
+              <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
+                <input type="radio" name="stretchType" value="linear" checked class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                <div>
+                  <div class="text-xs font-semibold text-slate-200">균등 당김 (Uniform Stretch)</div>
+                  <div class="text-xs text-slate-400 mt-0.5">영상 프레임 전체를 목표 비율에 균일하게 맞춰 당깁니다. 원본 정보 100% 보존.</div>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
+                <input type="radio" name="stretchType" value="smart" class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                <div>
+                  <div class="text-xs font-semibold text-slate-200">스마트 아나모픽 당김 (Smart Center-Preserve)</div>
+                  <div class="text-xs text-slate-400 mt-0.5">중앙부(인물/주요피사체) 왜곡을 줄이고 외곽 쪽을 유연하게 늘려 왜곡감을 완화합니다.</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- 출력 해상도 스케일 선택 -->
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">출력 해상도 퀄리티</label>
+            <select id="qualitySelect" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="originalHeight" selected>원본 높이 유지 (추천 - 선명도 보존)</option>
+              <option value="1080">1080p 기준 스케일 (고화질)</option>
+              <option value="720">720p 기준 스케일 (빠른 인코딩)</option>
+            </select>
+            <p id="targetDimensionInfo" class="text-[11px] text-indigo-400/90 font-mono">예상 출력 크기: 계산 중...</p>
+          </div>
+
+          <!-- Export Action Section -->
+          <div class="pt-2 border-t border-slate-800 flex flex-col gap-3">
+            <button id="startExportBtn" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all transform active:scale-98">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>변환된 영상 인코딩 및 다운로드</span>
+            </button>
+            <p class="text-[11px] text-center text-slate-500">브라우저 내 하드웨어 가속 Canvas 스트림을 통해 오디오와 함께 저장됩니다.</p>
+          </div>
+
+        </div>
+
+        <!-- Render Progress Card (변환 진행 시 표시) -->
+        <div id="progressCard" class="hidden glass-panel rounded-3xl p-5 border border-indigo-500/30 bg-indigo-950/20 flex flex-col gap-3 animate-pulse-subtle">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+              <span class="text-xs font-bold text-white">영상 변환 중...</span>
+            </div>
+            <span id="percentText" class="text-xs font-mono font-bold text-indigo-400">0%</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden p-0.5">
+            <div id="progressBar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full w-0 transition-all duration-150"></div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span id="processedTime">진행: 0:00 / 0:00</span>
+            <button id="cancelExportBtn" class="text-rose-400 hover:text-rose-300 font-semibold">취소</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Toast Notification Box -->
+  <div id="toastBox" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-panel px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-700">
+      <span id="toastIcon" class="text-emerald-400">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+      </span>
+      <p id="toastMessage" class="text-xs font-medium text-slate-200">성공적으로 처리되었습니다.</p>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    const state = {
+      file: null,
+      videoDuration: 0,
+      origWidth: 0,
+      origHeight: 0,
+      targetRatio: '4:3', // '4:3' or '5:4'
+      stretchType: 'linear', // 'linear' or 'smart'
+      qualityPreset: 'originalHeight',
+      renderWidth: 1440,
+      renderHeight: 1080,
+      isOriginalView: false,
+      isExporting: false,
+      animationFrameId: null,
+      mediaRecorder: null,
+      recordedChunks: [],
+      audioContext: null,
+      audioSource: null,
+      audioDest: null
+    };
+
+    // DOM Elements
+    const dropzone = document.getElementById('dropzone');
+    const videoInput = document.getElementById('videoInput');
+    const workspace = document.getElementById('workspace');
+    const sourceVideo = document.getElementById('sourceVideo');
+    const previewCanvas = document.getElementById('previewCanvas');
+    const ctx = previewCanvas.getContext('2d');
+    
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const sourceResBadge = document.getElementById('sourceResBadge');
+    const targetResBadge = document.getElementById('targetResBadge');
+    const targetDimensionInfo = document.getElementById('targetDimensionInfo');
+    const stretchModeLabel = document.getElementById('stretchModeLabel');
+    
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playIcon = document.getElementById('playIcon');
+    const pauseIcon = document.getElementById('pauseIcon');
+    const playPauseText = document.getElementById('playPauseText');
+    const restartBtn = document.getElementById('restartBtn');
+    const seekBar = document.getElementById('seekBar');
+    const timeCurrent = document.getElementById('timeCurrent');
+    const timeDuration = document.getElementById('timeDuration');
+    const volumeBtn = document.getElementById('volumeBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const toggleOriginalBtn = document.getElementById('toggleOriginalBtn');
+    const changeFileBtn = document.getElementById('changeFileBtn');
+    
+    const ratioBtns = document.querySelectorAll('.ratio-btn');
+    const stretchRadios = document.querySelectorAll('input[name="stretchType"]');
+    const qualitySelect = document.getElementById('qualitySelect');
+    const startExportBtn = document.getElementById('startExportBtn');
+    const progressCard = document.getElementById('progressCard');
+    const progressBar = document.getElementById('progressBar');
+    const percentText = document.getElementById('percentText');
+    const processedTime = document.getElementById('processedTime');
+    const cancelExportBtn = document.getElementById('cancelExportBtn');
+
+    function showToast(message, isError = false) {
+      const toastBox = document.getElementById('toastBox');
+      const toastMessage = document.getElementById('toastMessage');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMessage.textContent = message;
+      if (isError) {
+        toastIcon.innerHTML = `<svg class="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+      } else {
+        toastIcon.innerHTML = `<svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+      }
+
+      toastBox.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      toastBox.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toastBox.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+        toastBox.classList.remove('translate-y-0', 'opacity-100');
+      }, 3500);
+    }
+
+    // Helper: format seconds to M:SS
+    function formatTime(secs) {
+      if (isNaN(secs)) return '0:00';
+      const m = Math.floor(secs / 60);
+      const s = Math.floor(secs % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function calculateOutputDimensions() {
+      if (!state.origWidth || !state.origHeight) return;
+
+      const [rW, rH] = state.targetRatio.split(':').map(Number);
+      const targetRatioValue = rW / rH; // 4/3 = 1.3333, 5/4 = 1.25
+
+      let targetHeight = state.origHeight;
+      if (state.qualityPreset === '1080') {
+        targetHeight = 1080;
+      } else if (state.qualityPreset === '720') {
+        targetHeight = 720;
+      }
+
+      // targetWidth = targetHeight * targetRatio
+      let targetWidth = Math.round(targetHeight * targetRatioValue);
+      // Ensure even dimensions for video codecs
+      if (targetWidth % 2 !== 0) targetWidth += 1;
+      if (targetHeight % 2 !== 0) targetHeight += 1;
+
+      state.renderWidth = targetWidth;
+      state.renderHeight = targetHeight;
+
+      // Update Canvas Size
+      previewCanvas.width = targetWidth;
+      previewCanvas.height = targetHeight;
+
+      // Update UI labels
+      targetResBadge.textContent = `${targetWidth}x${targetHeight} (${state.targetRatio})`;
+      targetDimensionInfo.textContent = `출력 해상도: ${targetWidth}x${targetHeight} (가로비 ${state.targetRatio}, 무손실 당김)`;
+    }
+
+    function renderFrame() {
+      if (!state.origWidth || !state.origHeight || sourceVideo.readyState < 2) {
+        state.animationFrameId = requestAnimationFrame(renderFrame);
+        return;
+      }
+
+      const cw = previewCanvas.width;
+      const ch = previewCanvas.height;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, cw, ch);
+
+      if (state.isOriginalView) {
+        // 원본 비교 모드: 검은 레터박스로 원본 비율 유지 표시
+        ctx.fillStyle = '#05070e';
+        ctx.fillRect(0, 0, cw, ch);
+        
+        const origAspect = state.origWidth / state.origHeight;
+        const targetAspect = cw / ch;
+
+        let dw, dh, dx, dy;
+        if (origAspect > targetAspect) {
+          dw = cw;
+          dh = cw / origAspect;
+          dx = 0;
+          dy = (ch - dh) / 2;
+        } else {
+          dh = ch;
+          dw = ch * origAspect;
+          dx = (cw - dw) / 2;
+          dy = 0;
+        }
+        ctx.drawImage(sourceVideo, 0, 0, state.origWidth, state.origHeight, dx, dy, dw, dh);
+
+      } else if (state.stretchType === 'linear') {
+        // 1. 순수 균등 당김 (자르지 않고 캔버스 100% 채움)
+        // 원본 영상 전체 프레임을 정확히 cw, ch로 비선형 압축/팽창
+        ctx.drawImage(sourceVideo, 0, 0, state.origWidth, state.origHeight, 0, 0, cw, ch);
+
+      } else if (state.stretchType === 'smart') {
+        // 2. 스마트 비선형 당김 (중앙부는 원본 비율에 가깝게 왜곡 최소화, 양쪽 사이드를 더 많이 늘려 캔버스 채움)
+        // 3분할 렌더링: Left, Center, Right
+        const centerRatio = 0.5; // 중앙부가 차지하는 소스 비율
+        const srcLeftW = state.origWidth * ((1 - centerRatio) / 2);
+        const srcCenterW = state.origWidth * centerRatio;
+        const srcRightW = srcLeftW;
+
+        // 타깃에서도 중앙부는 원본에 보다 자연스러운 비중을 두고, 가장자리가 늘어남/줄어듦을 흡수
+        // 16:9 -> 4:3 변환시 폭이 좁아지므로 사이드가 더 많이 수축됨
+        const dstCenterW = cw * 0.58; 
+        const dstSideW = (cw - dstCenterW) / 2;
+
+        // Draw Left Strip
+        ctx.drawImage(sourceVideo, 0, 0, srcLeftW, state.origHeight, 0, 0, dstSideW, ch);
+        // Draw Center Strip (보호 구간)
+        ctx.drawImage(sourceVideo, srcLeftW, 0, srcCenterW, state.origHeight, dstSideW, 0, dstCenterW, ch);
+        // Draw Right Strip
+        ctx.drawImage(sourceVideo, srcLeftW + srcCenterW, 0, srcRightW, state.origHeight, dstSideW + dstCenterW, 0, dstSideW, ch);
+      }
+
+      if (!state.isExporting) {
+        state.animationFrameId = requestAnimationFrame(renderFrame);
+      }
+    }
+
+    function handleVideoFile(file) {
+      if (!file || !file.type.startsWith('video/')) {
+        showToast('유효한 동영상 파일(.mp4, .webm, .mov 등)을 선택해주세요.', true);
+        return;
+      }
+
+      state.file = file;
+      fileNameDisplay.textContent = file.name;
+      const fileUrl = URL.createObjectURL(file);
+      sourceVideo.src = fileUrl;
+      sourceVideo.load();
+
+      sourceVideo.onloadedmetadata = () => {
+        state.origWidth = sourceVideo.videoWidth;
+        state.origHeight = sourceVideo.videoHeight;
+        state.videoDuration = sourceVideo.duration;
+
+        // 원본 비율 계산 및 뱃지 업데이트
+        const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+        const divisor = gcd(state.origWidth, state.origHeight);
+        const aspectSimple = `${state.origWidth / divisor}:${state.origHeight / divisor}`;
+        
+        // 대표 비율 레이블
+        const floatRatio = (state.origWidth / state.origHeight).toFixed(2);
+        let ratioName = `${floatRatio}:1`;
+        if (Math.abs(floatRatio - 1.78) < 0.05) ratioName = '16:9';
+        else if (Math.abs(floatRatio - 1.33) < 0.05) ratioName = '4:3';
+        else if (Math.abs(floatRatio - 1.25) < 0.05) ratioName = '5:4';
+        else if (Math.abs(floatRatio - 2.39) < 0.1) ratioName = '21:9';
+        else if (Math.abs(floatRatio - 0.56) < 0.05) ratioName = '9:16 (세로)';
+
+        sourceResBadge.textContent = `${state.origWidth}x${state.origHeight} (${ratioName})`;
+
+        timeDuration.textContent = formatTime(state.videoDuration);
+        seekBar.max = state.videoDuration;
+        seekBar.value = 0;
+
+        calculateOutputDimensions();
+
+        dropzone.classList.add('hidden');
+        workspace.classList.remove('hidden');
+        workspace.classList.add('flex');
+
+        showToast(`'${file.name}' 비디오가 로드되었습니다.`);
+
+        // 렌더링 루프 시작
+        if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
+        state.animationFrameId = requestAnimationFrame(renderFrame);
+      };
+
+      sourceVideo.onerror = () => {
+        showToast('동영상을 디코딩할 수 없습니다. 지원 코덱을 확인해주세요.', true);
+      };
+    }
+
+    // Drag & Drop Listeners
+    videoInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleVideoFile(e.target.files[0]);
+      }
+    });
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('border-indigo-500');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('border-indigo-500');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-indigo-500');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleVideoFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    changeFileBtn.addEventListener('click', () => {
+      sourceVideo.pause();
+      videoInput.value = '';
+      workspace.classList.remove('flex');
+      workspace.classList.add('hidden');
+      dropzone.classList.remove('hidden');
+    });
+
+    function togglePlay() {
+      if (sourceVideo.paused || sourceVideo.ended) {
+        sourceVideo.play().catch(e => console.warn(e));
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+        playPauseText.textContent = '일시정지';
+      } else {
+        sourceVideo.pause();
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+        playPauseText.textContent = '재생';
+      }
+    }
+
+    playPauseBtn.addEventListener('click', togglePlay);
+
+    restartBtn.addEventListener('click', () => {
+      sourceVideo.currentTime = 0;
+      sourceVideo.play().catch(e => console.warn(e));
+      playIcon.classList.add('hidden');
+      pauseIcon.classList.remove('hidden');
+      playPauseText.textContent = '일시정지';
+    });
+
+    sourceVideo.addEventListener('timeupdate', () => {
+      if (!state.isExporting) {
+        seekBar.value = sourceVideo.currentTime;
+        timeCurrent.textContent = formatTime(sourceVideo.currentTime);
+      }
+    });
+
+    sourceVideo.addEventListener('ended', () => {
+      playIcon.classList.remove('hidden');
+      pauseIcon.classList.add('hidden');
+      playPauseText.textContent = '재생';
+    });
+
+    seekBar.addEventListener('input', (e) => {
+      sourceVideo.currentTime = parseFloat(e.target.value);
+      timeCurrent.textContent = formatTime(sourceVideo.currentTime);
+    });
+
+    volumeSlider.addEventListener('input', (e) => {
+      sourceVideo.volume = parseFloat(e.target.value);
+    });
+
+    volumeBtn.addEventListener('click', () => {
+      sourceVideo.muted = !sourceVideo.muted;
+      volumeSlider.value = sourceVideo.muted ? 0 : sourceVideo.volume;
+    });
+
+    ratioBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        ratioBtns.forEach(b => {
+          b.classList.remove('border-indigo-600', 'bg-indigo-600/15');
+          b.classList.add('border-slate-800', 'bg-slate-900/60');
+          const dot = b.querySelector('.check-dot span');
+          if (dot) dot.classList.replace('bg-white', 'bg-transparent');
+          b.querySelector('.check-dot')?.classList.replace('bg-indigo-500', 'bg-transparent');
+        });
+
+        btn.classList.remove('border-slate-800', 'bg-slate-900/60');
+        btn.classList.add('border-indigo-600', 'bg-indigo-600/15');
+        const activeDot = btn.querySelector('.check-dot span');
+        if (activeDot) activeDot.classList.replace('bg-transparent', 'bg-white');
+        btn.querySelector('.check-dot')?.classList.replace('bg-transparent', 'bg-indigo-500');
+
+        state.targetRatio = btn.getAttribute('data-ratio');
+        calculateOutputDimensions();
+      });
+    });
+
+    stretchRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        state.stretchType = e.target.value;
+        stretchModeLabel.textContent = state.stretchType === 'linear' 
+          ? '균일 당김 모드 (100% 보존)' 
+          : '스마트 아나모픽 당김';
+      });
+    });
+
+    qualitySelect.addEventListener('change', (e) => {
+      state.qualityPreset = e.target.value;
+      calculateOutputDimensions();
+    });
+
+    // Toggle Original View
+    toggleOriginalBtn.addEventListener('click', () => {
+      state.isOriginalView = !state.isOriginalView;
+      toggleOriginalBtn.classList.toggle('bg-indigo-600/20', state.isOriginalView);
+      toggleOriginalBtn.classList.toggle('text-indigo-300', state.isOriginalView);
+      toggleOriginalBtn.classList.toggle('border-indigo-500', state.isOriginalView);
+      stretchModeLabel.textContent = state.isOriginalView ? '원본 비율 모드' : (state.stretchType === 'linear' ? '균일 당김 모드' : '스마트 아나모픽 당김');
+    });
+
+    async function startExport() {
+      if (state.isExporting) return;
+      state.isExporting = true;
+      sourceVideo.pause();
+
+      // UI 상태 변경
+      startExportBtn.disabled = true;
+      startExportBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      progressCard.classList.remove('hidden');
+
+      showToast('인코딩을 준비하는 중입니다...');
+
+      // 1. 오디오 컨텍스트 및 스트림 결합 설정
+      let combinedStream;
+      try {
+        const fps = 30;
+        const canvasStream = previewCanvas.captureStream(fps);
+
+        // Web Audio 노드를 통해 원본 사운드 캡처
+        if (!state.audioContext) {
+          state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          state.audioSource = state.audioContext.createMediaElementSource(sourceVideo);
+          state.audioDest = state.audioContext.createMediaStreamDestination();
+          // 스피커 출력 및 녹음 목적지로 동시 분기
+          state.audioSource.connect(state.audioDest);
+          state.audioSource.connect(state.audioContext.destination);
+        }
+
+        if (state.audioContext.state === 'suspended') {
+          await state.audioContext.resume();
+        }
+
+        const audioTrack = state.audioDest.stream.getAudioTracks()[0];
+        if (audioTrack) {
+          combinedStream = new MediaStream([
+            ...canvasStream.getVideoTracks(),
+            audioTrack
+          ]);
+        } else {
+          combinedStream = canvasStream;
+        }
+      } catch (err) {
+        console.warn('Audio capture fallback:', err);
+        combinedStream = previewCanvas.captureStream(30);
+      }
+
+      // 지원 코덱 판별 (MP4 우선, WebM 대체)
+      let mimeType = 'video/webm;codecs=vp9,opus';
+      if (MediaRecorder.isTypeSupported('video/mp4')) {
+        mimeType = 'video/mp4';
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+        mimeType = 'video/webm;codecs=vp8,opus';
+      } else if (MediaRecorder.isTypeSupported('video/webm')) {
+        mimeType = 'video/webm';
+      }
+
+      state.recordedChunks = [];
+      try {
+        state.mediaRecorder = new MediaRecorder(combinedStream, {
+          mimeType,
+          videoBitsPerSecond: 8000000 // 8 Mbps 고화질
+        });
+      } catch (e) {
+        state.mediaRecorder = new MediaRecorder(combinedStream);
+      }
+
+      state.mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          state.recordedChunks.push(event.data);
+        }
+      };
+
+      state.mediaRecorder.onstop = () => {
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const blob = new Blob(state.recordedChunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        const baseName = state.file ? state.file.name.replace(/\.[^/.]+$/, "") : "stretched";
+        a.download = `${baseName}_${state.targetRatio.replace(':', 'x')}_Stretched.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 1000);
+
+        finishExport();
+        showToast('변환이 완료되어 다운로드가 시작되었습니다!');
+      };
+
+      // 렌더링 프레임 루프 동기화
+      sourceVideo.currentTime = 0;
+      sourceVideo.muted = false;
+
+      // 영상 재생 시작 후 녹화 시작
+      sourceVideo.play().then(() => {
+        state.mediaRecorder.start(250);
+
+        const exportLoop = () => {
+          if (!state.isExporting) return;
+
+          renderFrame();
+
+          // 진행률 업데이트
+          const cur = sourceVideo.currentTime;
+          const dur = sourceVideo.duration || 1;
+          const percent = Math.min(100, Math.round((cur / dur) * 100));
+
+          progressBar.style.width = `${percent}%`;
+          percentText.textContent = `${percent}%`;
+          processedTime.textContent = `진행: ${formatTime(cur)} / ${formatTime(dur)}`;
+
+          if (sourceVideo.ended || cur >= dur - 0.1) {
+            state.mediaRecorder.stop();
+          } else {
+            requestAnimationFrame(exportLoop);
+          }
+        };
+
+        requestAnimationFrame(exportLoop);
+      }).catch(err => {
+        showToast('변환 시작 오류: 재생 권한 필요', true);
+        finishExport();
+      });
+    }
+
+    function finishExport() {
+      state.isExporting = false;
+      startExportBtn.disabled = false;
+      startExportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      progressCard.classList.add('hidden');
+      progressBar.style.width = '0%';
+      percentText.textContent = '0%';
+      
+      // 일반 렌더링 루프 복원
+      requestAnimationFrame(renderFrame);
+    }
+
+    startExportBtn.addEventListener('click', startExport);
+
+    cancelExportBtn.addEventListener('click', () => {
+      if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+        state.mediaRecorder.stop();
+      }
+      sourceVideo.pause();
+      finishExport();
+      showToast('변환이 취소되었습니다.');
+    });
+
+  </script>
+</body>
+</html>
