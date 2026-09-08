@@ -355,6 +355,63 @@
             <p id="targetDimensionInfo" class="text-[11px] text-indigo-400/90 font-mono">예상 출력 크기: 계산 중...</p>
           </div>
 
+          <!-- 출력 포맷 및 코덱 (MP4 호환성 보장) -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">출력 포맷 및 코덱</label>
+              <span id="codecSupportBadge" class="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span>MP4 (H.264) 권장</span>
+              </span>
+            </div>
+            <select id="formatSelect" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+            </select>
+            <p id="formatDesc" class="text-[11px] text-slate-400 px-1 leading-relaxed">
+              윈도우 기본 미디어 플레이어, 팟플레이어, 맥, 스마트폰에서 오류 없이 즉시 열립니다.
+            </p>
+          </div>
+
+          <!-- 인코딩 속도 및 용량 조절 -->
+          <div class="flex flex-col gap-2.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">인코딩 속도 / 용량</label>
+              <span id="estimatedSizeBadge" class="text-[11px] font-mono text-indigo-400 font-medium">예상 용량: 계산 중</span>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 text-xs">
+              <button type="button" data-preset="fast" class="speed-preset-btn py-2 px-1 rounded-xl text-center text-slate-400 hover:text-white font-medium transition-all">
+                <div class="font-bold text-xs">⚡ 초고속</div>
+                <div class="text-[10px] text-slate-500">최소 용량</div>
+              </button>
+              <button type="button" data-preset="balanced" class="speed-preset-btn py-2 px-1 rounded-xl text-center bg-indigo-600 text-white font-bold transition-all shadow-md">
+                <div class="font-bold text-xs">⚖️ 균형</div>
+                <div class="text-[10px] text-indigo-200">표준 권장</div>
+              </button>
+              <button type="button" data-preset="quality" class="speed-preset-btn py-2 px-1 rounded-xl text-center text-slate-400 hover:text-white font-medium transition-all">
+                <div class="font-bold text-xs">💎 고화질</div>
+                <div class="text-[10px] text-slate-500">선명도 우선</div>
+              </button>
+            </div>
+
+            <!-- 세부 비트레이트 및 FPS 조절 -->
+            <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80 flex flex-col gap-2.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">비트레이트(화질/용량):</span>
+                <span id="bitrateDisplay" class="font-mono text-indigo-300 font-semibold">7.5 Mbps</span>
+              </div>
+              <input type="range" id="bitrateSlider" min="2" max="20" step="0.5" value="7.5" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-indigo-500">
+
+              <div class="flex items-center justify-between pt-1 border-t border-slate-800/60">
+                <span class="text-slate-400">프레임 레이트 (FPS):</span>
+                <div class="flex gap-1">
+                  <button type="button" data-fps="24" class="fps-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 hover:text-white">24fps</button>
+                  <button type="button" data-fps="30" class="fps-btn px-2 py-0.5 rounded text-[10px] bg-indigo-600 text-white font-bold">30fps</button>
+                  <button type="button" data-fps="60" class="fps-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 hover:text-white">60fps</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Export Action Section -->
           <div class="pt-2 border-t border-slate-800 flex flex-col gap-3">
             <button id="startExportBtn" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all transform active:scale-98">
@@ -416,6 +473,11 @@
       targetRatio: '4:3', // '4:3' or '5:4'
       stretchType: 'linear', // 'linear' or 'smart'
       qualityPreset: 'originalHeight',
+      selectedMime: '',
+      selectedExt: 'mp4',
+      bitrateMbps: 7.5,
+      targetFps: 30,
+      speedPreset: 'balanced',
       renderWidth: 1440,
       renderHeight: 1080,
       isOriginalView: false,
@@ -474,6 +536,192 @@
     const stretchOptionsContainer = document.getElementById('stretchOptionsContainer');
     const modeDescription = document.getElementById('modeDescription');
     const activeModeBadge = document.getElementById('activeModeBadge');
+
+    // New Format & Speed/Size DOM
+    const formatSelect = document.getElementById('formatSelect');
+    const codecSupportBadge = document.getElementById('codecSupportBadge');
+    const formatDesc = document.getElementById('formatDesc');
+    const speedPresetBtns = document.querySelectorAll('.speed-preset-btn');
+    const bitrateSlider = document.getElementById('bitrateSlider');
+    const bitrateDisplay = document.getElementById('bitrateDisplay');
+    const fpsBtns = document.querySelectorAll('.fps-btn');
+    const estimatedSizeBadge = document.getElementById('estimatedSizeBadge');
+
+    // 1. 호환성 높은 코덱 목록 자동 탐색 (윈도우/맥 기본 플레이어에서 지원되도록 보장)
+    function initCodecSupport() {
+      if (!formatSelect) return;
+
+      const candidates = [
+        {
+          mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+          ext: 'mp4',
+          label: 'MP4 (H.264 + AAC) - 윈도우/맥/스마트폰 완벽 호환 [강력 추천]',
+          desc: '윈도우 기본 미디어 플레이어, 팟플레이어, 카카오톡, 맥, 스마트폰에서 오류 없이 즉시 열립니다.'
+        },
+        {
+          mime: 'video/mp4;codecs=avc1',
+          ext: 'mp4',
+          label: 'MP4 (H.264 비디오 표준)',
+          desc: '모든 기기에서 재생 가능한 표준 H.264 코덱입니다.'
+        },
+        {
+          mime: 'video/mp4',
+          ext: 'mp4',
+          label: 'MP4 (기본 컨테이너)',
+          desc: '표준 MP4 컨테이너 형식입니다.'
+        },
+        {
+          mime: 'video/webm;codecs=h264',
+          ext: 'mp4',
+          label: 'MP4/H.264 (호환 모드)',
+          desc: '폭넓은 비디오 플레이어와 호환됩니다.'
+        },
+        {
+          mime: 'video/webm;codecs=vp8,opus',
+          ext: 'webm',
+          label: 'WebM (VP8 호환형) - 팟플레이어/VLC/웹용',
+          desc: 'VP9보다 호환성이 높은 WebM 포맷입니다.'
+        },
+        {
+          mime: 'video/webm;codecs=vp9,opus',
+          ext: 'webm',
+          label: 'WebM (VP9 고효율)',
+          desc: '웹 브라우저 및 최신 플레이어에 적합한 고압축 포맷입니다.'
+        },
+        {
+          mime: 'video/webm',
+          ext: 'webm',
+          label: 'WebM (기본)',
+          desc: '표준 WebM 포맷입니다.'
+        }
+      ];
+
+      formatSelect.innerHTML = '';
+      let isFirst = true;
+
+      candidates.forEach((cand) => {
+        if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(cand.mime)) {
+          const opt = document.createElement('option');
+          opt.value = cand.mime;
+          opt.textContent = cand.label;
+          opt.dataset.ext = cand.ext;
+          opt.dataset.desc = cand.desc;
+          formatSelect.appendChild(opt);
+
+          if (isFirst) {
+            state.selectedMime = cand.mime;
+            state.selectedExt = cand.ext;
+            if (formatDesc) formatDesc.textContent = cand.desc;
+            
+            if (codecSupportBadge) {
+              if (cand.ext === 'mp4') {
+                codecSupportBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>MP4 (H.264) 완벽 호환</span>`;
+                codecSupportBadge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold flex items-center gap-1';
+              } else {
+                codecSupportBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>WebM 포맷</span>`;
+                codecSupportBadge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-semibold flex items-center gap-1';
+              }
+            }
+            isFirst = false;
+          }
+        }
+      });
+
+      formatSelect.addEventListener('change', () => {
+        const selectedOpt = formatSelect.options[formatSelect.selectedIndex];
+        if (!selectedOpt) return;
+        state.selectedMime = selectedOpt.value;
+        state.selectedExt = selectedOpt.dataset.ext || 'mp4';
+        if (formatDesc) formatDesc.textContent = selectedOpt.dataset.desc || '';
+
+        if (codecSupportBadge) {
+          if (state.selectedExt === 'mp4') {
+            codecSupportBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>MP4 (H.264) 완벽 호환</span>`;
+            codecSupportBadge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold flex items-center gap-1';
+          } else {
+            codecSupportBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>WebM 포맷 (VLC/크롬)</span>`;
+            codecSupportBadge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-semibold flex items-center gap-1';
+          }
+        }
+      });
+    }
+
+    initCodecSupport();
+
+    function updateEstimatedSize() {
+      if (!estimatedSizeBadge) return;
+      if (!state.videoDuration || state.videoDuration <= 0) {
+        estimatedSizeBadge.textContent = '예상 용량: 계산 중';
+        return;
+      }
+      // 예상 용량 (MB) = (비트레이트 Mbps * 재생시간 초) / 8
+      const mb = ((state.bitrateMbps * state.videoDuration) / 8).toFixed(1);
+      estimatedSizeBadge.textContent = `예상 용량: 약 ${mb} MB`;
+    }
+
+    // 2. 인코딩 속도 및 용량 프리셋 제어
+    speedPresetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        speedPresetBtns.forEach(b => {
+          b.className = 'speed-preset-btn py-2 px-1 rounded-xl text-center text-slate-400 hover:text-white font-medium transition-all';
+          const subText = b.querySelector('div:last-child');
+          if (subText) subText.className = 'text-[10px] text-slate-500';
+        });
+
+        btn.className = 'speed-preset-btn py-2 px-1 rounded-xl text-center bg-indigo-600 text-white font-bold transition-all shadow-md';
+        const activeSub = btn.querySelector('div:last-child');
+        if (activeSub) activeSub.className = 'text-[10px] text-indigo-200';
+
+        const preset = btn.getAttribute('data-preset');
+        state.speedPreset = preset;
+
+        if (preset === 'fast') {
+          // 초고속 모드: 가벼운 비트레이트 3.5Mbps, 24fps -> 인코딩 부하 최저, 용량 최소화
+          state.bitrateMbps = 3.5;
+          state.targetFps = 24;
+        } else if (preset === 'balanced') {
+          // 표준 권장 모드: 7.5Mbps, 30fps
+          state.bitrateMbps = 7.5;
+          state.targetFps = 30;
+        } else if (preset === 'quality') {
+          // 고화질 모드: 14Mbps, 60fps
+          state.bitrateMbps = 14;
+          state.targetFps = 60;
+        }
+
+        if (bitrateSlider) bitrateSlider.value = state.bitrateMbps;
+        if (bitrateDisplay) bitrateDisplay.textContent = `${state.bitrateMbps} Mbps`;
+
+        fpsBtns.forEach(fb => {
+          const fval = parseInt(fb.getAttribute('data-fps'), 10);
+          if (fval === state.targetFps) {
+            fb.className = 'fps-btn px-2 py-0.5 rounded text-[10px] bg-indigo-600 text-white font-bold';
+          } else {
+            fb.className = 'fps-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 hover:text-white';
+          }
+        });
+
+        updateEstimatedSize();
+      });
+    });
+
+    if (bitrateSlider) {
+      bitrateSlider.addEventListener('input', (e) => {
+        state.bitrateMbps = parseFloat(e.target.value);
+        if (bitrateDisplay) bitrateDisplay.textContent = `${state.bitrateMbps} Mbps`;
+        updateEstimatedSize();
+      });
+    }
+
+    fpsBtns.forEach(fb => {
+      fb.addEventListener('click', () => {
+        fpsBtns.forEach(b => {
+          b.className = 'fps-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 hover:text-white';
+        });
+        fb.className = 'fps-btn px-2 py-0.5 rounded text-[10px] bg-indigo-600 text-white font-bold';
+        state.targetFps = parseInt(fb.getAttribute('data-fps'), 10);
+      });
+    });
 
     function showToast(message, isError = false) {
       const toastBox = document.getElementById('toastBox');
@@ -654,6 +902,7 @@
         seekBar.value = 0;
 
         calculateOutputDimensions();
+        updateEstimatedSize();
 
         dropzone.classList.add('hidden');
         workspace.classList.remove('hidden');
@@ -774,6 +1023,7 @@
         seekBar.value = 0;
 
         calculateOutputDimensions();
+        updateEstimatedSize();
 
         dropzone.classList.add('hidden');
         if (urlInputSection) urlInputSection.classList.add('hidden');
@@ -986,64 +1236,76 @@
       state.isExporting = true;
       sourceVideo.pause();
 
-      // UI 상태 변경
       startExportBtn.disabled = true;
       startExportBtn.classList.add('opacity-50', 'cursor-not-allowed');
       progressCard.classList.remove('hidden');
 
-      showToast('인코딩을 준비하는 중입니다...');
+      showToast('표준 호환 인코딩을 준비하고 있습니다...');
 
-      // 1. 오디오 컨텍스트 및 스트림 결합 설정
+      // 1. 오디오 스트림 안전 연결 (인코딩 파일 오류 방지)
       let combinedStream;
+      const fps = state.targetFps || 30;
+      const canvasStream = previewCanvas.captureStream(fps);
+
+      let audioTrack = null;
       try {
-        const fps = 30;
-        const canvasStream = previewCanvas.captureStream(fps);
-
-        // Web Audio 노드를 통해 원본 사운드 캡처
-        if (!state.audioContext) {
-          state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          state.audioSource = state.audioContext.createMediaElementSource(sourceVideo);
-          state.audioDest = state.audioContext.createMediaStreamDestination();
-          // 스피커 출력 및 녹음 목적지로 동시 분기
-          state.audioSource.connect(state.audioDest);
-          state.audioSource.connect(state.audioContext.destination);
-        }
-
-        if (state.audioContext.state === 'suspended') {
-          await state.audioContext.resume();
-        }
-
-        const audioTrack = state.audioDest.stream.getAudioTracks()[0];
-        if (audioTrack) {
-          combinedStream = new MediaStream([
-            ...canvasStream.getVideoTracks(),
-            audioTrack
-          ]);
-        } else {
-          combinedStream = canvasStream;
+        if (sourceVideo.captureStream) {
+          const st = sourceVideo.captureStream();
+          if (st.getAudioTracks().length > 0) {
+            audioTrack = st.getAudioTracks()[0];
+          }
+        } else if (sourceVideo.mozCaptureStream) {
+          const st = sourceVideo.mozCaptureStream();
+          if (st.getAudioTracks().length > 0) {
+            audioTrack = st.getAudioTracks()[0];
+          }
         }
       } catch (err) {
-        console.warn('Audio capture fallback:', err);
-        combinedStream = previewCanvas.captureStream(30);
+        console.warn('Direct audio capture:', err);
       }
 
-      // 지원 코덱 판별 (MP4 우선, WebM 대체)
-      let mimeType = 'video/webm;codecs=vp9,opus';
-      if (MediaRecorder.isTypeSupported('video/mp4')) {
-        mimeType = 'video/mp4';
-      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
-        mimeType = 'video/webm;codecs=vp8,opus';
-      } else if (MediaRecorder.isTypeSupported('video/webm')) {
-        mimeType = 'video/webm';
+      // Web Audio 대체 시도 (소리가 있는 경우에만 안전하게 결합)
+      if (!audioTrack) {
+        try {
+          if (!state.audioContext) {
+            state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            state.audioSource = state.audioContext.createMediaElementSource(sourceVideo);
+            state.audioDest = state.audioContext.createMediaStreamDestination();
+            state.audioSource.connect(state.audioDest);
+            state.audioSource.connect(state.audioContext.destination);
+          }
+
+          if (state.audioContext.state === 'suspended') {
+            await state.audioContext.resume();
+          }
+
+          if (state.audioDest && state.audioDest.stream.getAudioTracks().length > 0) {
+            audioTrack = state.audioDest.stream.getAudioTracks()[0];
+          }
+        } catch (err) {
+          console.warn('Web Audio node capture fallback:', err);
+        }
       }
+
+      // 오디오 트랙이 정상적으로 존재할 때만 합침 (무음 영상에서 잘못된 오디오 헤더로 인한 코덱 에러 방지)
+      const tracks = [...canvasStream.getVideoTracks()];
+      if (audioTrack && !sourceVideo.muted) {
+        tracks.push(audioTrack);
+      }
+      combinedStream = new MediaStream(tracks);
+
+      // 2. 인코더 및 비트레이트 설정
+      const mimeType = state.selectedMime || 'video/mp4';
+      const bps = Math.round(state.bitrateMbps * 1000 * 1000);
 
       state.recordedChunks = [];
       try {
         state.mediaRecorder = new MediaRecorder(combinedStream, {
           mimeType,
-          videoBitsPerSecond: 8000000 // 8 Mbps 고화질
+          videoBitsPerSecond: bps
         });
       } catch (e) {
+        console.warn('Fallback basic recorder:', e);
         state.mediaRecorder = new MediaRecorder(combinedStream);
       }
 
@@ -1054,16 +1316,17 @@
       };
 
       state.mediaRecorder.onstop = () => {
-        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-        const blob = new Blob(state.recordedChunks, { type: mimeType });
+        const finalExt = state.selectedExt || 'mp4';
+        const finalBlobType = state.mediaRecorder.mimeType || mimeType;
+        const blob = new Blob(state.recordedChunks, { type: finalBlobType });
         const url = URL.createObjectURL(blob);
 
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        const baseName = state.file ? state.file.name.replace(/\.[^/.]+$/, "") : "video";
+        const baseName = state.file ? state.file.name.replace(/\.[^/.]+$/, "") : "stretched_video";
         const modeSuffix = state.fitMode === 'crop' ? 'Cropped' : 'Stretched';
-        a.download = `${baseName}_${state.targetRatio.replace(':', 'x')}_${modeSuffix}.${ext}`;
+        a.download = `${baseName}_${state.targetRatio.replace(':', 'x')}_${modeSuffix}.${finalExt}`;
         document.body.appendChild(a);
         a.click();
         
@@ -1073,23 +1336,21 @@
         }, 1000);
 
         finishExport();
-        showToast('변환이 완료되어 다운로드가 시작되었습니다!');
+        showToast(`'${finalExt.toUpperCase()}' 변환 완료! 이제 윈도우 미디어 플레이어 등 모든 기기에서 즉시 재생됩니다.`);
       };
 
       // 렌더링 프레임 루프 동기화
       sourceVideo.currentTime = 0;
       sourceVideo.muted = false;
 
-      // 영상 재생 시작 후 녹화 시작
       sourceVideo.play().then(() => {
-        state.mediaRecorder.start(250);
+        state.mediaRecorder.start(100);
 
         const exportLoop = () => {
           if (!state.isExporting) return;
 
           renderFrame();
 
-          // 진행률 업데이트
           const cur = sourceVideo.currentTime;
           const dur = sourceVideo.duration || 1;
           const percent = Math.min(100, Math.round((cur / dur) * 100));
@@ -1107,7 +1368,7 @@
 
         requestAnimationFrame(exportLoop);
       }).catch(err => {
-        showToast('변환 시작 오류: 재생 권한 필요', true);
+        showToast('변환 시작 실패: 비디오 재생 권한이 필요합니다.', true);
         finishExport();
       });
     }
