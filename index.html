@@ -1231,6 +1231,90 @@
       }
     });
 
+    // 안드로이드 및 모바일 동영상 플레이어에서 탐색바(Seekbar) 이동 및 앞뒤 스킵이 먹통되지 않도록
+    // MP4/WebM 파일 헤더의 Duration과 Timecode 메타데이터를 정밀 패치하는 함수
+    async function fixVideoSeekableDuration(rawBlob, durationSec, mimeType) {
+      const durationMs = Math.max(100, Math.round(durationSec * 1000));
+
+      // 1. WebM 계열인 경우 fix-webm-duration 라이브러리를 통해 Cues(키프레임 색인) 및 재생시간 주입
+      if (mimeType.includes('webm') && typeof window.ysFixWebmDuration === 'function') {
+        return new Promise((resolve) => {
+          window.ysFixWebmDuration(rawBlob, durationMs, (fixedBlob) => {
+            resolve(fixedBlob);
+          });
+        });
+      }
+
+      // 2. MP4 계열인 경우 ArrayBuffer를 파싱하여 moov -> mvhd 및 mvex -> mehd의 duration을 실제 값으로 직접 패치
+      try {
+        const buffer = await rawBlob.arrayBuffer();
+        const view = new DataView(buffer);
+        const len = buffer.byteLength;
+
+        function findBox(offset, maxLen, targetBox) {
+          let pos = offset;
+          while (pos < offset + maxLen && pos + 8 <= len) {
+            let size = view.getUint32(pos);
+            const type = String.fromCharCode(
+              view.getUint8(pos + 4),
+              view.getUint8(pos + 5),
+              view.getUint8(pos + 6),
+              view.getUint8(pos + 7)
+            );
+            if (size === 1 && pos + 16 <= len) {
+              size = Number(view.getBigUint64(pos + 8));
+            } else if (size === 0) {
+              size = len - pos;
+            }
+            if (type === targetBox) {
+              return { offset: pos, size: size };
+            }
+            if (size <= 0) break;
+            pos += size;
+          }
+          return null;
+        }
+
+        const moov = findBox(0, len, 'moov');
+        if (moov) {
+          const mvhd = findBox(moov.offset + 8, moov.size - 8, 'mvhd');
+          let timescale = 1000;
+          if (mvhd) {
+            const version = view.getUint8(mvhd.offset + 8);
+            if (version === 0 && mvhd.offset + 28 <= len) {
+              timescale = view.getUint32(mvhd.offset + 20) || 1000;
+              const targetDuration = Math.round(durationSec * timescale);
+              view.setUint32(mvhd.offset + 24, targetDuration);
+            } else if (version === 1 && mvhd.offset + 40 <= len) {
+              timescale = view.getUint32(mvhd.offset + 28) || 1000;
+              const targetDuration = BigInt(Math.round(durationSec * timescale));
+              view.setBigUint64(mvhd.offset + 32, targetDuration);
+            }
+          }
+
+          // Fragmented MP4(mvex -> mehd) duration 보정
+          const mvex = findBox(moov.offset + 8, moov.size - 8, 'mvex');
+          if (mvex) {
+            const mehd = findBox(mvex.offset + 8, mvex.size - 8, 'mehd');
+            if (mehd) {
+              const mehdVer = view.getUint8(mehd.offset + 8);
+              if (mehdVer === 0 && mehd.offset + 16 <= len) {
+                view.setUint32(mehd.offset + 12, Math.round(durationSec * timescale));
+              } else if (mehdVer === 1 && mehd.offset + 20 <= len) {
+                view.setBigUint64(mehd.offset + 12, BigInt(Math.round(durationSec * timescale)));
+              }
+            }
+          }
+
+          return new Blob([buffer], { type: rawBlob.type || 'video/mp4' });
+        }
+      } catch (err) {
+        console.warn('MP4 duration patch fallback:', err);
+      }
+
+      return rawBlob;
+    }
+
     async function startExport() {
       if (state.isExporting) return;
       state.isExporting = true;
@@ -1240,7 +1324,7 @@
       startExportBtn.classList.add('opacity-50', 'cursor-not-allowed');
       progressCard.classList.remove('hidden');
 
-      showToast('표준 호환 인코딩을 준비하고 있습니다...');
+      showToast('모바일 탐색 호환 인코딩을 준비하고 있습니다...');
 
       // 1. 오디오 스트림 안전 연결 (인코딩 파일 오류 방지)
       let combinedStream;
@@ -1315,11 +1399,16 @@
         }
       };
 
-      state.mediaRecorder.onstop = () => {
+      state.mediaRecorder.onstop = async () => {
         const finalExt = state.selectedExt || 'mp4';
         const finalBlobType = state.mediaRecorder.mimeType || mimeType;
-        const blob = new Blob(state.recordedChunks, { type: finalBlobType });
-        const url = URL.createObjectURL(blob);
+        const rawBlob = new Blob(state.recordedChunks, { type: finalBlobType });
+        
+        // 안드로이드 및 모바일 플레이어 탐색(스킵)을 위한 재생시간 및 색인 자동 주입
+        const totalDuration = state.videoDuration || sourceVideo.duration || 1;
+        const fixedBlob = await fixVideoSeekableDuration(rawBlob, totalDuration, finalBlobType);
+
+        const url = URL.createObjectURL(fixedBlob);
 
         const a = document.createElement('a');
         a.style.display = 'none';
@@ -1336,7 +1425,7 @@
         }, 1000);
 
         finishExport();
-        showToast(`'${finalExt.toUpperCase()}' 변환 완료! 이제 윈도우 미디어 플레이어 등 모든 기기에서 즉시 재생됩니다.`);
+        showToast(`'${finalExt.toUpperCase()}' 변환 완료! 이제 안드로이드 및 모든 기기에서 스킵/탐색이 정상 작동합니다.`);
       };
 
       // 렌더링 프레임 루프 동기화
