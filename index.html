@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AspectStretcher</title>
+  <title>AspectStretcher - 영상 4:3 / 5:4 무손실 당김 변환기</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- WebM Seekable Duration Fixer -->
@@ -477,6 +477,16 @@
     const percentText = document.getElementById('percentText');
     const processedTime = document.getElementById('processedTime');
     const cancelExportBtn = document.getElementById('cancelExportBtn');
+    const cancelAndChangeBtn = document.getElementById('cancelAndChangeBtn');
+    const quickReloadBtn = document.getElementById('quickReloadBtn');
+    const completeCard = document.getElementById('completeCard');
+    const dismissCompleteBtn = document.getElementById('dismissCompleteBtn');
+    const reExportBtn = document.getElementById('reExportBtn');
+    const loadAnotherVideoBtn = document.getElementById('loadAnotherVideoBtn');
+    const globalDropOverlay = document.getElementById('globalDropOverlay');
+
+    let lastExportBlob = null;
+    let lastExportFilename = '';
 
     const modeStretchBtn = document.getElementById('modeStretchBtn');
     const modeCropBtn = document.getElementById('modeCropBtn');
@@ -873,14 +883,129 @@
       });
     });
 
-    changeFileBtn.addEventListener('click', () => {
+    // Clean reset function that safely aborts active recording
+    function resetAndShowUploadView() {
+      if (state.isExporting) {
+        if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+          try { state.mediaRecorder.stop(); } catch(e){}
+        }
+        state.isExporting = false;
+      }
+
       sourceVideo.pause();
+      sourceVideo.removeAttribute('src');
+      sourceVideo.load();
+
+      if (state.animationFrameId) {
+        cancelAnimationFrame(state.animationFrameId);
+        state.animationFrameId = null;
+      }
+
       videoInput.value = '';
       if (videoUrlInput) videoUrlInput.value = '';
+
+      progressCard.classList.add('hidden');
+      completeCard.classList.add('hidden');
       workspace.classList.remove('flex');
       workspace.classList.add('hidden');
+
       dropzone.classList.remove('hidden');
       if (urlInputSection) urlInputSection.classList.remove('hidden');
+
+      startExportBtn.disabled = false;
+      startExportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    changeFileBtn.addEventListener('click', resetAndShowUploadView);
+    if (quickReloadBtn) quickReloadBtn.addEventListener('click', () => {
+      videoInput.click();
+    });
+
+    if (cancelAndChangeBtn) {
+      cancelAndChangeBtn.addEventListener('click', () => {
+        showToast('변환을 취소하고 파일 선택 창을 엽니다.');
+        resetAndShowUploadView();
+        videoInput.click();
+      });
+    }
+
+    if (loadAnotherVideoBtn) {
+      loadAnotherVideoBtn.addEventListener('click', resetAndShowUploadView);
+    }
+
+    if (dismissCompleteBtn) {
+      dismissCompleteBtn.addEventListener('click', () => {
+        completeCard.classList.add('hidden');
+      });
+    }
+
+    if (reExportBtn) {
+      reExportBtn.addEventListener('click', () => {
+        if (lastExportBlob) {
+          const url = URL.createObjectURL(lastExportBlob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = lastExportFilename || 'video.mp4';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }, 1000);
+          showToast('다운로드를 다시 시작했습니다.');
+        } else {
+          startExport();
+        }
+      });
+    }
+
+    // Global drag & drop support (작업 중 언제든 새 파일을 화면으로 끌어오면 교체)
+    let dragCounter = 0;
+    window.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dragCounter++;
+      if (globalDropOverlay && !workspace.classList.contains('hidden')) {
+        globalDropOverlay.classList.remove('hidden');
+        globalDropOverlay.classList.add('flex');
+      }
+    });
+
+    window.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dragCounter--;
+      if (dragCounter <= 0 && globalDropOverlay) {
+        dragCounter = 0;
+        globalDropOverlay.classList.add('hidden');
+        globalDropOverlay.classList.remove('flex');
+      }
+    });
+
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragCounter = 0;
+      if (globalDropOverlay) {
+        globalDropOverlay.classList.add('hidden');
+        globalDropOverlay.classList.remove('flex');
+      }
+
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        const file = e.dataTransfer.files[0];
+        if (state.isExporting) {
+          if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+            try { state.mediaRecorder.stop(); } catch(err){}
+          }
+          finishExport();
+        }
+        completeCard.classList.add('hidden');
+        handleVideoFile(file);
+      }
     });
 
     // Tab switching for Standard vs Fold/Flip presets
@@ -1286,14 +1411,17 @@
         const totalDuration = state.videoDuration || sourceVideo.duration || 1;
         const result = await fixVideoSeekableDuration(rawBlob, totalDuration, finalBlobType);
 
+        lastExportBlob = result.blob;
+        const baseName = state.file ? state.file.name.replace(/\.[^/.]+$/, "") : "stretched_video";
+        const modeSuffix = state.fitMode === 'crop' ? 'Cropped' : 'Stretched';
+        const ratioClean = state.targetRatio.replace(':', 'x').replace('.', '_');
+        lastExportFilename = `${baseName}_${ratioClean}_${modeSuffix}.${result.ext}`;
+
         const url = URL.createObjectURL(result.blob);
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        const baseName = state.file ? state.file.name.replace(/\.[^/.]+$/, "") : "stretched_video";
-        const modeSuffix = state.fitMode === 'crop' ? 'Cropped' : 'Stretched';
-        const ratioClean = state.targetRatio.replace(':', 'x').replace('.', '_');
-        a.download = `${baseName}_${ratioClean}_${modeSuffix}.${result.ext}`;
+        a.download = lastExportFilename;
         document.body.appendChild(a);
         a.click();
         
@@ -1303,6 +1431,9 @@
         }, 1000);
 
         finishExport();
+        
+        // Show completion card with options
+        completeCard.classList.remove('hidden');
         showToast(`'${result.ext.toUpperCase()}' 변환 완료! 모든 플레이어에서 스킵 이동이 정상 작동합니다.`);
       };
 
