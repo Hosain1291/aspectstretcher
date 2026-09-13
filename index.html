@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AspectStretcher - 영상 4:3 / 5:4 무손실 당김 변환기</title>
+  <title>AspectStretcher</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- WebM Seekable Duration Fixer -->
   <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.6/fix-webm-duration.min.js"></script>
   <!-- Google Fonts: Inter & Noto Sans KR -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <script>
@@ -33,7 +33,7 @@
 
     input[type=range] { accent-color: #6366f1; }
     .glass-panel {
-      background: rgba(15, 23, 42, 0.75);
+      background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -48,7 +48,18 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white relative">
+
+  <!-- Global Drag-and-Drop Overlay -->
+  <div id="globalDropOverlay" class="fixed inset-0 z-50 bg-indigo-950/90 backdrop-blur-md border-4 border-dashed border-indigo-400 flex flex-col items-center justify-center pointer-events-none opacity-0 transition-opacity duration-200">
+    <div class="w-20 h-20 rounded-3xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4 animate-bounce">
+      <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+      </svg>
+    </div>
+    <h2 class="text-2xl font-black text-white mb-1">새 동영상 파일을 여기에 놓으세요</h2>
+    <p class="text-sm text-indigo-200">언제든지 드래그하여 즉시 새 영상을 변환기에 로드합니다.</p>
+  </div>
 
   <header class="border-b border-slate-800/80 bg-slate-900/60 sticky top-0 z-40 backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -63,9 +74,9 @@
             <h1 class="text-base sm:text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
               AspectStretcher
             </h1>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">Non-Crop</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">Non-Crop Pro</span>
           </div>
-          <p class="text-xs text-slate-400 hidden sm:block">영상을 잘라내지 않고 4:3 / 5:4 / 폴더블 / 스마트폰 비율로 당겨주는 모던 변환기</p>
+          <p class="text-xs text-slate-400 hidden sm:block">영상을 잘라내지 않고 4:3 / 5:4 / 갤럭시 Z 폴드 & 플립 전 세대 맞춤 변환기</p>
         </div>
       </div>
 
@@ -91,7 +102,7 @@
         </div>
         <h3 class="text-lg font-bold text-white mb-1">변환할 비디오를 드래그하거나 클릭하여 선택</h3>
         <p class="text-sm text-slate-400 max-w-md mx-auto mb-4">
-          16:9, 21:9 울트라와이드 또는 세로 9:16 등 어떤 비율이든 지원하며 자르지 않고 온전하게 지정 비율로 변환합니다.
+          16:9, 21:9 울트라와이드 또는 세로 9:16 등 어떤 비율이든 지원하며 자르지 않고 지정 비율로 채워 당깁니다.
         </p>
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/90 text-xs font-semibold text-slate-300 border border-slate-700 group-hover:border-indigo-500/50">
           <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -163,6 +174,12 @@
             </div>
             
             <div class="flex items-center gap-2">
+              <button id="quickReloadBtn" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1.5 border border-slate-700">
+                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span>📂 새 영상 열기</span>
+              </button>
               <span class="text-xs text-slate-400">목표 규격:</span>
               <span id="targetResBadge" class="text-xs px-2.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold font-mono">1440x1080 (4:3)</span>
             </div>
@@ -272,20 +289,21 @@
             </button>
           </div>
 
-          <!-- Ratio Presets with Tabs (Standard vs Fold/Flip) -->
+          <!-- Ratio Presets with 3 Tabs (Standard vs Fold 5-8 Ultra vs Flip) -->
           <div class="flex flex-col gap-2.5">
             <div class="flex items-center justify-between">
               <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">화면 비율 규격 선택</label>
               <span id="targetRatioTag" class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">4:3 선택됨</span>
             </div>
 
-            <!-- Tab Buttons -->
-            <div class="grid grid-cols-2 gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
-              <button type="button" id="tabStandardBtn" class="py-1.5 px-2 rounded-lg bg-indigo-600 text-white font-semibold transition-all">표준 (4:3 / 5:4)</button>
-              <button type="button" id="tabFoldFlipBtn" class="py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all flex items-center justify-center gap-1">
-                <span>폴드 / 플립</span>
+            <!-- Tab Buttons: Standard vs Fold vs Flip -->
+            <div class="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+              <button type="button" id="tabStandardBtn" class="py-1.5 px-2 rounded-lg bg-indigo-600 text-white font-semibold transition-all">표준 (4:3)</button>
+              <button type="button" id="tabFoldBtn" class="py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all flex items-center justify-center gap-1">
+                <span>폴드 5~8</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
               </button>
+              <button type="button" id="tabFlipBtn" class="py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all">플립</button>
             </div>
 
             <!-- Standard Ratios Group (4:3, 5:4) -->
@@ -311,46 +329,61 @@
               </button>
             </div>
 
-            <!-- Fold / Flip Ratios Group -->
-            <div id="foldFlipRatiosGroup" class="hidden grid-cols-2 gap-2.5">
-              <button type="button" data-ratio="6:5" data-name="폴드 메인(6:5)" class="ratio-btn group relative p-2.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
-                <div class="flex items-center justify-between mb-0.5">
-                  <span class="text-xs font-bold text-white">📖 폴드 메인</span>
+            <!-- Fold Series Group (Fold 5, 6, 7, 8, 8 Ultra with Landscape & Portrait modes) -->
+            <div id="foldRatiosGroup" class="hidden flex-col gap-3">
+              <!-- Landscape vs Portrait Mode Toggle -->
+              <div class="flex items-center justify-between bg-slate-900/90 p-1.5 rounded-xl border border-slate-800 text-xs">
+                <span class="text-[11px] font-semibold text-slate-300 ml-1 flex items-center gap-1">
+                  <span>방향:</span>
+                  <span id="orientationIndicator" class="text-indigo-400 font-bold">↔ 가로 플레이어</span>
+                </span>
+                <div class="flex items-center gap-1">
+                  <button type="button" id="orientLandscapeBtn" class="px-2.5 py-1 rounded-md bg-indigo-600 text-white font-bold transition-all flex items-center gap-1">
+                    <span>↔ 가로</span>
+                  </button>
+                  <button type="button" id="orientPortraitBtn" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-white font-medium transition-all flex items-center gap-1">
+                    <span>↕ 세로</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Fold Model Select Pills (Horizontal Scroll) -->
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                <button type="button" data-fold-model="fold8u" class="fold-model-tab px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-semibold whitespace-nowrap">폴드8 울트라</button>
+                <button type="button" data-fold-model="fold8" class="fold-model-tab px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 font-medium whitespace-nowrap">폴드8</button>
+                <button type="button" data-fold-model="fold7" class="fold-model-tab px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 font-medium whitespace-nowrap">폴드7</button>
+                <button type="button" data-fold-model="fold6" class="fold-model-tab px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 font-medium whitespace-nowrap">폴드6</button>
+                <button type="button" data-fold-model="fold5" class="fold-model-tab px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 font-medium whitespace-nowrap">폴드5</button>
+              </div>
+
+              <!-- Dynamic Fold Main & Cover Buttons Container -->
+              <div id="foldPresetsContainer" class="grid grid-cols-2 gap-2.5">
+                <!-- Injected via JavaScript based on model & orientation -->
+              </div>
+            </div>
+
+            <!-- Flip Series Group (Flip unfolded & Cover Flex Window) -->
+            <div id="flipRatiosGroup" class="hidden grid-cols-2 gap-2.5">
+              <button type="button" data-ratio="22:9" data-name="플립 펼침(22:9)" class="ratio-btn group relative p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold text-white">📱 플립 전체 (22:9)</span>
                   <span class="w-3.5 h-3.5 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
                     <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
                   </span>
                 </div>
-                <p class="text-[10px] text-slate-400">6:5 (내부 대화면)</p>
+                <p class="text-[10px] text-slate-400">초슬림 와이드 시네마</p>
+                <span class="text-[9px] text-slate-500 font-mono block mt-0.5">2640x1080</span>
               </button>
 
-              <button type="button" data-ratio="22:9" data-name="플립 펼침(22:9)" class="ratio-btn group relative p-2.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
-                <div class="flex items-center justify-between mb-0.5">
-                  <span class="text-xs font-bold text-white">📱 플립 전체</span>
+              <button type="button" data-ratio="1:1" data-name="플립 윈도우(1:1)" class="ratio-btn group relative p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold text-white">🔲 플렉스 윈도우</span>
                   <span class="w-3.5 h-3.5 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
                     <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
                   </span>
                 </div>
-                <p class="text-[10px] text-slate-400">22:9 (2.44:1 울트라)</p>
-              </button>
-
-              <button type="button" data-ratio="23.1:9" data-name="폴드 커버(23.1:9)" class="ratio-btn group relative p-2.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
-                <div class="flex items-center justify-between mb-0.5">
-                  <span class="text-xs font-bold text-white">📲 폴드 커버</span>
-                  <span class="w-3.5 h-3.5 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
-                    <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
-                  </span>
-                </div>
-                <p class="text-[10px] text-slate-400">23.1:9 (외부 화면)</p>
-              </button>
-
-              <button type="button" data-ratio="1:1" data-name="플립 윈도우(1:1)" class="ratio-btn group relative p-2.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
-                <div class="flex items-center justify-between mb-0.5">
-                  <span class="text-xs font-bold text-white">🔲 플립 윈도우</span>
-                  <span class="w-3.5 h-3.5 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
-                    <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
-                  </span>
-                </div>
-                <p class="text-[10px] text-slate-400">1:1 (정사각형 커버)</p>
+                <p class="text-[10px] text-slate-400">1:1 정방형 외부창</p>
+                <span class="text-[9px] text-slate-500 font-mono block mt-0.5">720x748 커버</span>
               </button>
             </div>
           </div>
@@ -386,7 +419,34 @@
 
           <div class="flex items-center justify-between text-[11px] text-slate-400">
             <span id="processedTime">진행: 0:00 / 0:00</span>
-            <button id="cancelExportBtn" class="text-rose-400 hover:text-rose-300 font-semibold">취소</button>
+            <div class="flex items-center gap-3">
+              <button id="cancelExportBtn" class="text-rose-400 hover:text-rose-300 font-semibold">취소</button>
+              <button id="cancelAndChangeBtn" class="text-indigo-400 hover:text-indigo-300 font-medium">취소 후 새 파일</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Completion Card with Action Buttons -->
+        <div id="completeCard" class="hidden glass-panel rounded-3xl p-5 border border-emerald-500/40 bg-emerald-950/20 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-emerald-400">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="text-xs font-bold text-white">변환 및 다운로드 완료!</span>
+            </div>
+            <button id="dismissCompleteBtn" class="text-slate-400 hover:text-slate-200 text-xs">닫기</button>
+          </div>
+          <p class="text-[11px] text-slate-300">
+            영상이 기기에 저장되었습니다. 안드로이드/삼성 비디오 플레이어에서 앞뒤 10초 스킵이 정상 작동합니다.
+          </p>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button id="reExportBtn" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1">
+              <span>다시 다운로드</span>
+            </button>
+            <button id="loadAnotherVideoBtn" class="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-1">
+              <span>✨ 새 영상 불러오기</span>
+            </button>
           </div>
         </div>
       </div>
@@ -414,7 +474,8 @@
       targetRatio: '4:3',
       deviceRatioValue: 9 / 16,
       deviceRatioText: '9:16',
-      stretchType: 'linear',
+      activeFoldModel: 'fold8u',
+      foldOrientation: 'landscape', // 'landscape' or 'portrait'
       selectedMime: '',
       selectedExt: 'mp4',
       bitrateMbps: 8.0,
@@ -429,6 +490,65 @@
       audioContext: null,
       audioSource: null,
       audioDest: null
+    };
+
+    // Fold Model Specifications: Main & Cover with Landscape and Portrait modes
+    const foldModelsData = {
+      fold8u: {
+        name: '폴드8 울트라',
+        main: {
+          landscape: { ratio: '16:11', label: '메인 가로', res: '2720x1870' },
+          portrait: { ratio: '11:16', label: '메인 세로', res: '1870x2720' }
+        },
+        cover: {
+          landscape: { ratio: '20:9', label: '커버 가로', res: '2560x1152' },
+          portrait: { ratio: '9:20', label: '커버 세로', res: '1152x2560' }
+        }
+      },
+      fold8: {
+        name: '폴드8',
+        main: {
+          landscape: { ratio: '4:3', label: '메인 가로', res: '2448x1848' },
+          portrait: { ratio: '3:4', label: '메인 세로', res: '1848x2448' }
+        },
+        cover: {
+          landscape: { ratio: '16:10', label: '커버 가로', res: '1972x1248' },
+          portrait: { ratio: '10:16', label: '커버 세로', res: '1248x1972' }
+        }
+      },
+      fold7: {
+        name: '폴드7',
+        main: {
+          landscape: { ratio: '10:9', label: '메인 가로', res: '2184x1968' },
+          portrait: { ratio: '9:10', label: '메인 세로', res: '1968x2184' }
+        },
+        cover: {
+          landscape: { ratio: '21:9', label: '커버 가로', res: '2520x1080' },
+          portrait: { ratio: '9:21', label: '커버 세로', res: '1080x2520' }
+        }
+      },
+      fold6: {
+        name: '폴드6',
+        main: {
+          landscape: { ratio: '7:6', label: '메인 가로', res: '2160x1856' },
+          portrait: { ratio: '6:7', label: '메인 세로', res: '1856x2160' }
+        },
+        cover: {
+          landscape: { ratio: '22.1:9', label: '커버 가로', res: '2376x968' },
+          portrait: { ratio: '9:22.1', label: '커버 세로', res: '968x2376' }
+        }
+      },
+      fold5: {
+        name: '폴드5',
+        main: {
+          landscape: { ratio: '6:5', label: '메인 가로', res: '2176x1812' },
+          portrait: { ratio: '5:6', label: '메인 세로', res: '1812x2176' }
+        },
+        cover: {
+          landscape: { ratio: '23.1:9', label: '커버 가로', res: '2316x904' },
+          portrait: { ratio: '9:23.1', label: '커버 세로', res: '904x2316' }
+        }
+      }
     };
 
     // DOM Elements
@@ -454,9 +574,17 @@
     const targetRatioTag = document.getElementById('targetRatioTag');
 
     const tabStandardBtn = document.getElementById('tabStandardBtn');
-    const tabFoldFlipBtn = document.getElementById('tabFoldFlipBtn');
+    const tabFoldBtn = document.getElementById('tabFoldBtn');
+    const tabFlipBtn = document.getElementById('tabFlipBtn');
     const standardRatiosGroup = document.getElementById('standardRatiosGroup');
-    const foldFlipRatiosGroup = document.getElementById('foldFlipRatiosGroup');
+    const foldRatiosGroup = document.getElementById('foldRatiosGroup');
+    const flipRatiosGroup = document.getElementById('flipRatiosGroup');
+
+    const foldModelTabs = document.querySelectorAll('.fold-model-tab');
+    const foldPresetsContainer = document.getElementById('foldPresetsContainer');
+    const orientLandscapeBtn = document.getElementById('orientLandscapeBtn');
+    const orientPortraitBtn = document.getElementById('orientPortraitBtn');
+    const orientationIndicator = document.getElementById('orientationIndicator');
     
     const playPauseBtn = document.getElementById('playPauseBtn');
     const playIcon = document.getElementById('playIcon');
@@ -610,9 +738,15 @@
       if (state.targetRatio === 'device') {
         targetRatioValue = state.deviceRatioValue;
         ratioLabel = state.deviceRatioText;
-      } else {
+      } else if (state.targetRatio.includes(':')) {
         const parts = state.targetRatio.split(':').map(Number);
-        targetRatioValue = parts[0] / parts[1];
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]) && parts[1] !== 0) {
+          targetRatioValue = parts[0] / parts[1];
+        } else {
+          targetRatioValue = 4 / 3;
+        }
+      } else {
+        targetRatioValue = 4 / 3;
       }
 
       let targetHeight = state.origHeight;
@@ -719,9 +853,6 @@
         state.origHeight = sourceVideo.videoHeight;
         state.videoDuration = sourceVideo.duration;
 
-        const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-        const divisor = gcd(state.origWidth, state.origHeight);
-        
         const floatRatio = (state.origWidth / state.origHeight).toFixed(2);
         let ratioName = `${floatRatio}:1`;
         if (Math.abs(floatRatio - 1.78) < 0.05) ratioName = '16:9';
@@ -835,7 +966,39 @@
       };
     }
 
-    // Drag & Drop Listeners
+    // Clean reset function that safely aborts active recording and resets player
+    function resetAndShowUploadView() {
+      if (state.isExporting) {
+        if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+          try { state.mediaRecorder.stop(); } catch(e){}
+        }
+        state.isExporting = false;
+      }
+
+      sourceVideo.pause();
+      sourceVideo.removeAttribute('src');
+      sourceVideo.load();
+
+      if (state.animationFrameId) {
+        cancelAnimationFrame(state.animationFrameId);
+        state.animationFrameId = null;
+      }
+
+      videoInput.value = '';
+      if (videoUrlInput) videoUrlInput.value = '';
+
+      progressCard.classList.add('hidden');
+      completeCard.classList.add('hidden');
+      workspace.classList.add('hidden');
+      workspace.classList.remove('flex');
+      dropzone.classList.remove('hidden');
+      if (urlInputSection) urlInputSection.classList.remove('hidden');
+
+      startExportBtn.disabled = false;
+      startExportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      showToast('새 동영상을 선택할 수 있도록 초기화되었습니다.');
+    }
+
     videoInput.addEventListener('change', (e) => {
       if (e.target.files && e.target.files[0]) {
         handleVideoFile(e.target.files[0]);
@@ -883,63 +1046,40 @@
       });
     });
 
-    // Clean reset function that safely aborts active recording
-    function resetAndShowUploadView() {
-      if (state.isExporting) {
-        if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
-          try { state.mediaRecorder.stop(); } catch(e){}
-        }
-        state.isExporting = false;
+    // Global Drag and Drop to replace video anywhere, anytime
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (globalDropOverlay) {
+        globalDropOverlay.classList.remove('opacity-0', 'pointer-events-none');
+        globalDropOverlay.classList.add('opacity-100');
       }
-
-      sourceVideo.pause();
-      sourceVideo.removeAttribute('src');
-      sourceVideo.load();
-
-      if (state.animationFrameId) {
-        cancelAnimationFrame(state.animationFrameId);
-        state.animationFrameId = null;
-      }
-
-      videoInput.value = '';
-      if (videoUrlInput) videoUrlInput.value = '';
-
-      progressCard.classList.add('hidden');
-      completeCard.classList.add('hidden');
-      workspace.classList.remove('flex');
-      workspace.classList.add('hidden');
-
-      dropzone.classList.remove('hidden');
-      if (urlInputSection) urlInputSection.classList.remove('hidden');
-
-      startExportBtn.disabled = false;
-      startExportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    changeFileBtn.addEventListener('click', resetAndShowUploadView);
-    if (quickReloadBtn) quickReloadBtn.addEventListener('click', () => {
-      videoInput.click();
     });
 
-    if (cancelAndChangeBtn) {
-      cancelAndChangeBtn.addEventListener('click', () => {
-        showToast('변환을 취소하고 파일 선택 창을 엽니다.');
-        resetAndShowUploadView();
-        videoInput.click();
-      });
-    }
+    window.addEventListener('dragleave', (e) => {
+      if (e.clientX <= 0 || e.clientY <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
+        if (globalDropOverlay) {
+          globalDropOverlay.classList.add('opacity-0', 'pointer-events-none');
+          globalDropOverlay.classList.remove('opacity-100');
+        }
+      }
+    });
 
-    if (loadAnotherVideoBtn) {
-      loadAnotherVideoBtn.addEventListener('click', resetAndShowUploadView);
-    }
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (globalDropOverlay) {
+        globalDropOverlay.classList.add('opacity-0', 'pointer-events-none');
+        globalDropOverlay.classList.remove('opacity-100');
+      }
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleVideoFile(e.dataTransfer.files[0]);
+      }
+    });
 
-    if (dismissCompleteBtn) {
-      dismissCompleteBtn.addEventListener('click', () => {
-        completeCard.classList.add('hidden');
-      });
-    }
+    if (changeFileBtn) changeFileBtn.addEventListener('click', resetAndShowUploadView);
+    if (quickReloadBtn) quickReloadBtn.addEventListener('click', () => videoInput.click());
+    if (cancelAndChangeBtn) cancelAndChangeBtn.addEventListener('click', resetAndShowUploadView);
+    if (loadAnotherVideoBtn) loadAnotherVideoBtn.addEventListener('click', resetAndShowUploadView);
+    if (dismissCompleteBtn) dismissCompleteBtn.addEventListener('click', () => completeCard.classList.add('hidden'));
 
     if (reExportBtn) {
       reExportBtn.addEventListener('click', () => {
@@ -948,111 +1088,169 @@
           const a = document.createElement('a');
           a.style.display = 'none';
           a.href = url;
-          a.download = lastExportFilename || 'video.mp4';
+          a.download = lastExportFilename || 'converted_video.mp4';
           document.body.appendChild(a);
           a.click();
           setTimeout(() => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
           }, 1000);
-          showToast('다운로드를 다시 시작했습니다.');
+          showToast('다운로드가 다시 시작되었습니다.');
         } else {
           startExport();
         }
       });
     }
 
-    // Global drag & drop support (작업 중 언제든 새 파일을 화면으로 끌어오면 교체)
-    let dragCounter = 0;
-    window.addEventListener('dragenter', (e) => {
-      e.preventDefault();
-      dragCounter++;
-      if (globalDropOverlay && !workspace.classList.contains('hidden')) {
-        globalDropOverlay.classList.remove('hidden');
-        globalDropOverlay.classList.add('flex');
-      }
-    });
-
-    window.addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      dragCounter--;
-      if (dragCounter <= 0 && globalDropOverlay) {
-        dragCounter = 0;
-        globalDropOverlay.classList.add('hidden');
-        globalDropOverlay.classList.remove('flex');
-      }
-    });
-
-    window.addEventListener('dragover', (e) => {
-      e.preventDefault();
-    });
-
-    window.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dragCounter = 0;
-      if (globalDropOverlay) {
-        globalDropOverlay.classList.add('hidden');
-        globalDropOverlay.classList.remove('flex');
-      }
-
-      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
-        const file = e.dataTransfer.files[0];
-        if (state.isExporting) {
-          if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
-            try { state.mediaRecorder.stop(); } catch(err){}
-          }
-          finishExport();
-        }
-        completeCard.classList.add('hidden');
-        handleVideoFile(file);
-      }
-    });
-
-    // Tab switching for Standard vs Fold/Flip presets
-    if (tabStandardBtn && tabFoldFlipBtn) {
+    // Tab switching for Standard vs Fold vs Flip presets
+    if (tabStandardBtn && tabFoldBtn && tabFlipBtn) {
       tabStandardBtn.addEventListener('click', () => {
         tabStandardBtn.className = "py-1.5 px-2 rounded-lg bg-indigo-600 text-white font-semibold transition-all";
-        tabFoldFlipBtn.className = "py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all flex items-center justify-center gap-1";
+        tabFoldBtn.className = "py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all flex items-center justify-center gap-1";
+        tabFlipBtn.className = "py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all";
+        
         standardRatiosGroup.classList.remove('hidden');
         standardRatiosGroup.classList.add('grid');
-        foldFlipRatiosGroup.classList.add('hidden');
-        foldFlipRatiosGroup.classList.remove('grid');
+        foldRatiosGroup.classList.add('hidden');
+        foldRatiosGroup.classList.remove('flex');
+        flipRatiosGroup.classList.add('hidden');
+        flipRatiosGroup.classList.remove('grid');
       });
 
-      tabFoldFlipBtn.addEventListener('click', () => {
-        tabFoldFlipBtn.className = "py-1.5 px-2 rounded-lg bg-indigo-600 text-white font-semibold transition-all flex items-center justify-center gap-1";
+      tabFoldBtn.addEventListener('click', () => {
+        tabFoldBtn.className = "py-1.5 px-2 rounded-lg bg-indigo-600 text-white font-semibold transition-all flex items-center justify-center gap-1";
         tabStandardBtn.className = "py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all";
-        foldFlipRatiosGroup.classList.remove('hidden');
-        foldFlipRatiosGroup.classList.add('grid');
+        tabFlipBtn.className = "py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all";
+        
+        foldRatiosGroup.classList.remove('hidden');
+        foldRatiosGroup.classList.add('flex');
         standardRatiosGroup.classList.add('hidden');
         standardRatiosGroup.classList.remove('grid');
+        flipRatiosGroup.classList.add('hidden');
+        flipRatiosGroup.classList.remove('grid');
+        renderFoldModelPresets();
+      });
+
+      tabFlipBtn.addEventListener('click', () => {
+        tabFlipBtn.className = "py-1.5 px-2 rounded-lg bg-indigo-600 text-white font-semibold transition-all";
+        tabStandardBtn.className = "py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all";
+        tabFoldBtn.className = "py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all flex items-center justify-center gap-1";
+        
+        flipRatiosGroup.classList.remove('hidden');
+        flipRatiosGroup.classList.add('grid');
+        standardRatiosGroup.classList.add('hidden');
+        standardRatiosGroup.classList.remove('grid');
+        foldRatiosGroup.classList.add('hidden');
+        foldRatiosGroup.classList.remove('flex');
       });
     }
 
-    // Ratio button selection handling
-    document.querySelectorAll('.ratio-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.ratio-btn').forEach(b => {
+    // Render Fold Presets (Landscape & Portrait) dynamically
+    function renderFoldModelPresets() {
+      if (!foldPresetsContainer) return;
+      const model = foldModelsData[state.activeFoldModel] || foldModelsData.fold8u;
+      const isLandscape = state.foldOrientation === 'landscape';
+      const mainSpec = isLandscape ? model.main.landscape : model.main.portrait;
+      const coverSpec = isLandscape ? model.cover.landscape : model.cover.portrait;
+
+      foldPresetsContainer.innerHTML = `
+        <!-- Main Screen Preset -->
+        <button type="button" data-ratio="${mainSpec.ratio}" data-name="${model.name} ${mainSpec.label}" class="ratio-btn group relative p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-indigo-500/60 text-left transition-all col-span-1">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-white flex items-center gap-1">
+              <span>📖 메인 (${isLandscape ? '가로' : '세로'})</span>
+            </span>
+            <span class="w-3.5 h-3.5 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
+              <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
+            </span>
+          </div>
+          <p class="text-[11px] text-indigo-300 font-semibold">${mainSpec.ratio} 대화면</p>
+          <span class="text-[10px] text-slate-400 font-mono block mt-0.5">${mainSpec.res}</span>
+        </button>
+
+        <!-- Cover Screen Preset -->
+        <button type="button" data-ratio="${coverSpec.ratio}" data-name="${model.name} ${coverSpec.label}" class="ratio-btn group relative p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-indigo-500/60 text-left transition-all col-span-1">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-white flex items-center gap-1">
+              <span>📲 커버 (${isLandscape ? '가로' : '세로'})</span>
+            </span>
+            <span class="w-3.5 h-3.5 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
+              <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
+            </span>
+          </div>
+          <p class="text-[11px] text-indigo-300 font-semibold">${coverSpec.ratio} 외부창</p>
+          <span class="text-[10px] text-slate-400 font-mono block mt-0.5">${coverSpec.res}</span>
+        </button>
+      `;
+
+      attachRatioButtonListeners();
+      highlightActiveRatioButton();
+    }
+
+    // Orientation Switcher Handlers (가로 vs 세로)
+    if (orientLandscapeBtn && orientPortraitBtn) {
+      orientLandscapeBtn.addEventListener('click', () => {
+        state.foldOrientation = 'landscape';
+        orientLandscapeBtn.className = "px-2.5 py-1 rounded-md bg-indigo-600 text-white font-bold transition-all flex items-center gap-1";
+        orientPortraitBtn.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-white font-medium transition-all flex items-center gap-1";
+        orientationIndicator.textContent = "↔ 가로 플레이어";
+        renderFoldModelPresets();
+        showToast("폴더블 플레이어를 [가로 플레이어 모드]로 설정했습니다.");
+      });
+
+      orientPortraitBtn.addEventListener('click', () => {
+        state.foldOrientation = 'portrait';
+        orientPortraitBtn.className = "px-2.5 py-1 rounded-md bg-indigo-600 text-white font-bold transition-all flex items-center gap-1";
+        orientLandscapeBtn.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-white font-medium transition-all flex items-center gap-1";
+        orientationIndicator.textContent = "↕ 세로 플레이어";
+        renderFoldModelPresets();
+        showToast("폴더블 플레이어를 [세로 플레이어 모드]로 설정했습니다.");
+      });
+    }
+
+    // Fold Model Tab selection (Fold 8 Ultra, Fold 8, Fold 7, Fold 6, Fold 5)
+    foldModelTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        foldModelTabs.forEach(t => {
+          t.className = "fold-model-tab px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 font-medium whitespace-nowrap";
+        });
+        tab.className = "fold-model-tab px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-semibold whitespace-nowrap";
+        state.activeFoldModel = tab.getAttribute('data-fold-model');
+        renderFoldModelPresets();
+      });
+    });
+
+    function highlightActiveRatioButton() {
+      document.querySelectorAll('.ratio-btn').forEach(b => {
+        const isCurrent = (b.getAttribute('data-ratio') === state.targetRatio);
+        if (isCurrent) {
+          b.classList.remove('border-slate-800', 'bg-slate-900/60');
+          b.classList.add('border-indigo-600', 'bg-indigo-600/15');
+          const dot = b.querySelector('.check-dot span');
+          if (dot) dot.classList.replace('bg-transparent', 'bg-white');
+          b.querySelector('.check-dot')?.classList.replace('bg-transparent', 'bg-indigo-500');
+        } else {
           b.classList.remove('border-indigo-600', 'bg-indigo-600/15');
           b.classList.add('border-slate-800', 'bg-slate-900/60');
           const dot = b.querySelector('.check-dot span');
           if (dot) dot.classList.replace('bg-white', 'bg-transparent');
           b.querySelector('.check-dot')?.classList.replace('bg-indigo-500', 'bg-transparent');
-        });
-
-        btn.classList.remove('border-slate-800', 'bg-slate-900/60');
-        btn.classList.add('border-indigo-600', 'bg-indigo-600/15');
-        const activeDot = btn.querySelector('.check-dot span');
-        if (activeDot) activeDot.classList.replace('bg-transparent', 'bg-white');
-        btn.querySelector('.check-dot')?.classList.replace('bg-transparent', 'bg-indigo-500');
-
-        state.targetRatio = btn.getAttribute('data-ratio');
-        const ratioDisplayName = btn.getAttribute('data-name') || state.targetRatio;
-        calculateOutputDimensions();
-        
-        showToast(`목표 비율을 [${ratioDisplayName}]로 설정했습니다.`);
+        }
       });
-    });
+    }
+
+    function attachRatioButtonListeners() {
+      document.querySelectorAll('.ratio-btn').forEach(btn => {
+        btn.onclick = () => {
+          state.targetRatio = btn.getAttribute('data-ratio');
+          const ratioDisplayName = btn.getAttribute('data-name') || state.targetRatio;
+          calculateOutputDimensions();
+          highlightActiveRatioButton();
+          showToast(`목표 비율을 [${ratioDisplayName}]로 설정했습니다.`);
+        };
+      });
+    }
+    attachRatioButtonListeners();
 
     function togglePlay() {
       if (sourceVideo.paused || sourceVideo.ended) {
