@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AspectStretcher - 영상 4:3 / 5:4 무손실 당김 변환기</title>
+  <title>AspectStretcher</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter & Pre-tendard font-family -->
+  <!-- WebM Seekable Duration Fixer -->
+  <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.6/fix-webm-duration.min.js"></script>
+  <!-- Google Fonts: Inter & Noto Sans KR -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,30 +20,18 @@
         extend: {
           fontFamily: {
             sans: ['Inter', 'Noto Sans KR', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            }
           }
         }
       }
     }
   </script>
   <style>
-    /* 커스텀 스크롤바 및 슬라이더 스타일 */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #0f172a; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-    input[type=range] {
-      accent-color: #6366f1;
-    }
+    input[type=range] { accent-color: #6366f1; }
     .glass-panel {
       background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(16px);
@@ -64,7 +54,6 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-          <!-- Aspect Ratio Icon -->
           <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
           </svg>
@@ -76,7 +65,7 @@
             </h1>
             <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">Non-Crop</span>
           </div>
-          <p class="text-xs text-slate-400 hidden sm:block">영상을 잘라내지 않고 4:3 / 5:4 비율로 꽉 채워 당겨주는 모던 변환기</p>
+          <p class="text-xs text-slate-400 hidden sm:block">영상을 잘라내지 않고 4:3 / 5:4 / 폴더블 / 스마트폰 비율로 당겨주는 모던 변환기</p>
         </div>
       </div>
 
@@ -91,7 +80,7 @@
 
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
 
-    <!-- Upload Dropzone (초기 상태) -->
+    <!-- Upload Dropzone -->
     <div id="dropzone" class="relative group cursor-pointer transition-all duration-300">
       <input type="file" id="videoInput" accept="video/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
       <div class="glass-panel border-2 border-dashed border-slate-700 group-hover:border-indigo-500 rounded-3xl p-8 sm:p-12 text-center transition-all bg-gradient-to-b from-slate-900/40 to-slate-900/80 group-hover:bg-indigo-950/20">
@@ -102,7 +91,7 @@
         </div>
         <h3 class="text-lg font-bold text-white mb-1">변환할 비디오를 드래그하거나 클릭하여 선택</h3>
         <p class="text-sm text-slate-400 max-w-md mx-auto mb-4">
-          16:9, 21:9 울트라와이드 또는 세로 9:16 등 어떤 비율이든 지원하며 자르지 않고 온전하게 4:3 또는 5:4 비율로 변환합니다.
+          16:9, 21:9 울트라와이드 또는 세로 9:16 등 어떤 비율이든 지원하며 자르지 않고 온전하게 지정 비율로 변환합니다.
         </p>
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/90 text-xs font-semibold text-slate-300 border border-slate-700 group-hover:border-indigo-500/50">
           <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -113,7 +102,7 @@
       </div>
     </div>
 
-    <!-- Web Video & Link Input Section (파일 첨부 바로 아래) -->
+    <!-- Direct Video URL Input Section -->
     <div id="urlInputSection" class="glass-panel rounded-3xl p-5 sm:p-6 border border-slate-800 flex flex-col gap-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div class="flex items-center gap-2">
@@ -125,7 +114,7 @@
           <span class="text-sm font-bold text-white">또는 웹 비디오 직링크(Direct URL) 입력</span>
         </div>
         <div class="flex items-center gap-1.5 text-xs text-slate-400">
-          <span>빠른 테스트 샘플:</span>
+          <span>테스트 샘플:</span>
           <button type="button" data-sample="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" data-title="16x9_와이드_샘플.mp4" class="sample-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 hover:text-indigo-300 border border-slate-700 text-[11px] text-slate-300 transition-colors">16:9 와이드</button>
           <button type="button" data-sample="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" data-title="애니메이션_샘플.mp4" class="sample-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 hover:text-indigo-300 border border-slate-700 text-[11px] text-slate-300 transition-colors">애니 16:9</button>
         </div>
@@ -157,60 +146,47 @@
           <span>영상 불러오기</span>
         </button>
       </div>
-
-      <div class="flex items-center gap-2 text-[11px] text-slate-400">
-        <svg class="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>온라인에 직접 호스팅된 비디오 파일(MP4, WebM 등) 링크를 지원하며, 페이지 내에서 Ctrl+V로 붙여넣어도 즉시 로드됩니다.</span>
-      </div>
     </div>
 
+    <!-- Workspace: Monitor on Left, Controls on Right -->
     <div id="workspace" class="hidden flex-col lg:flex-row gap-6">
       
-      <!-- Left: Video Preview & Canvas Display -->
+      <!-- Left: Video Monitor -->
       <div class="flex-1 flex flex-col gap-4">
-        <!-- Canvas Monitor Card -->
         <div class="glass-panel rounded-3xl p-4 sm:p-5 flex flex-col gap-4">
-          <!-- Monitor Header with Metadata -->
+          <!-- Monitor Header -->
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
               <span id="fileNameDisplay" class="font-medium text-sm text-slate-200 truncate max-w-[200px] sm:max-w-xs">video.mp4</span>
-              <span id="sourceResBadge" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 font-mono">1920x1080 (16:9)</span>
+              <span id="sourceResBadge" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 font-mono">1920x1080</span>
             </div>
             
             <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-400">목표:</span>
+              <span class="text-xs text-slate-400">목표 규격:</span>
               <span id="targetResBadge" class="text-xs px-2.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold font-mono">1440x1080 (4:3)</span>
             </div>
           </div>
 
           <!-- Video Viewport Frame -->
           <div class="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center checkerboard border border-slate-800/80 shadow-inner">
-            <!-- Hidden native video for source decoding -->
             <video id="sourceVideo" class="hidden" playsinline crossorigin="anonymous"></video>
-            
-            <!-- Processed Interactive Canvas -->
             <canvas id="previewCanvas" class="max-h-full max-w-full object-contain transition-all duration-200 rounded-lg shadow-2xl"></canvas>
 
-            <!-- Mode Watermark / Overlay Tag -->
             <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-mono text-slate-300 border border-slate-700/50 flex items-center gap-2 pointer-events-none">
               <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span id="stretchModeLabel">스트레치 당김 모드</span>
+              <span id="stretchModeLabel">화면 당김 모드</span>
             </div>
           </div>
 
           <!-- Player Controls Bar -->
           <div class="flex flex-col gap-2 pt-1">
-            <!-- Seekbar -->
             <div class="flex items-center gap-3">
               <span id="timeCurrent" class="text-xs font-mono text-slate-400 w-12 text-right">0:00</span>
               <input type="range" id="seekBar" min="0" max="100" value="0" step="0.05" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-indigo-500">
               <span id="timeDuration" class="text-xs font-mono text-slate-400 w-12">0:00</span>
             </div>
 
-            <!-- Buttons -->
             <div class="flex items-center justify-between mt-1">
               <div class="flex items-center gap-2">
                 <button id="playPauseBtn" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-medium text-xs flex items-center gap-2 transition-all">
@@ -223,16 +199,14 @@
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                 </button>
 
-                <!-- Mute / Volume -->
                 <div class="flex items-center gap-1.5 ml-2">
                   <button id="volumeBtn" class="text-slate-400 hover:text-slate-200">
-                    <svg id="volHighIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
                   </button>
                   <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8" class="w-16 h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-indigo-500">
                 </div>
               </div>
 
-              <!-- Original vs Stretched quick toggle button -->
               <button id="toggleOriginalBtn" class="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1.5 border border-slate-700">
                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                 <span>원본 비교</span>
@@ -244,41 +218,31 @@
 
       <!-- Right: Conversion Settings & Export Panel -->
       <div class="w-full lg:w-96 flex flex-col gap-5">
-        
-        <!-- Setting Card -->
-        <div class="glass-panel rounded-3xl p-5 sm:p-6 flex flex-col gap-6">
+        <div class="glass-panel rounded-3xl p-5 sm:p-6 flex flex-col gap-5">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
             <h2 class="font-bold text-base text-white flex items-center gap-2">
               <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
               </svg>
-              비율 변환 옵션
+              화면 비율 변환 설정
             </h2>
             <button id="changeFileBtn" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">다른 영상 선택</button>
           </div>
 
-          <!-- 변환 처리 방식: 당기기 vs 자르기 -->
+          <!-- Fill Mode: Stretch vs Crop -->
           <div class="flex flex-col gap-2.5">
             <div class="flex items-center justify-between">
               <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">화면 채움 방식</label>
               <span id="activeModeBadge" class="text-[11px] px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-medium">당기기 (100% 보존)</span>
             </div>
             <div class="grid grid-cols-2 gap-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
-              <button 
-                type="button" 
-                id="modeStretchBtn" 
-                class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow-md transition-all"
-              >
+              <button type="button" id="modeStretchBtn" class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow-md transition-all">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16M7 5l-3 3 3 3m10-6l3 3-3 3" />
                 </svg>
                 <span>↔ 당기기</span>
               </button>
-              <button 
-                type="button" 
-                id="modeCropBtn" 
-                class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-transparent text-slate-400 hover:text-white font-medium text-xs transition-all"
-              >
+              <button type="button" id="modeCropBtn" class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-transparent text-slate-400 hover:text-white font-medium text-xs transition-all">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
                 </svg>
@@ -286,34 +250,107 @@
               </button>
             </div>
             <p id="modeDescription" class="text-[11px] text-slate-400 leading-relaxed px-1">
-              원본 영상을 1px도 자르지 않고 목표 비율(4:3 / 5:4)로 꽉 채워 당깁니다.
+              원본 영상을 1px도 자르지 않고 목표 비율로 꽉 채워 당깁니다.
             </p>
           </div>
 
-          <!-- Target Ratio Selection: 4:3 vs 5:4 -->
+          <!-- Device Ratio Option (Dynamic Screen Match) -->
+          <div class="flex flex-col gap-2">
+            <button type="button" id="deviceRatioBtn" data-ratio="device" data-name="내 기기 전체화면" class="ratio-btn group relative p-3.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-indigo-500/60 text-left transition-all">
+              <div class="flex items-center justify-between mb-1">
+                <span id="deviceRatioLabel" class="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                  📱 내 화면 전체맞춤 (19.5:9)
+                </span>
+                <span class="w-4 h-4 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
+                  <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
+                </span>
+              </div>
+              <p id="deviceRatioSub" class="text-[11px] text-slate-400">
+                현재 접속 중인 스마트폰/화면 전체에 레터박스 없이 꽉 차도록 변환합니다.
+              </p>
+              <span id="detectedRatioBadge" class="inline-block mt-2 text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">기기 감지 중...</span>
+            </button>
+          </div>
+
+          <!-- Ratio Presets with Tabs (Standard vs Fold/Flip) -->
           <div class="flex flex-col gap-2.5">
-            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">목표 화면 비율 (Target Ratio)</label>
-            <div class="grid grid-cols-2 gap-3">
-              <!-- 4:3 Option -->
-              <button type="button" data-ratio="4:3" class="ratio-btn group relative p-3.5 rounded-2xl border-2 border-indigo-600 bg-indigo-600/15 text-left transition-all">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">화면 비율 규격 선택</label>
+              <span id="targetRatioTag" class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">4:3 선택됨</span>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="grid grid-cols-2 gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+              <button type="button" id="tabStandardBtn" class="py-1.5 px-2 rounded-lg bg-indigo-600 text-white font-semibold transition-all">표준 (4:3 / 5:4)</button>
+              <button type="button" id="tabFoldFlipBtn" class="py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all flex items-center justify-center gap-1">
+                <span>폴드 / 플립</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+              </button>
+            </div>
+
+            <!-- Standard Ratios Group (4:3, 5:4) -->
+            <div id="standardRatiosGroup" class="grid grid-cols-2 gap-2.5">
+              <button type="button" data-ratio="4:3" data-name="4:3 (CRT)" class="ratio-btn group relative p-3 rounded-2xl border-2 border-indigo-600 bg-indigo-600/15 text-left transition-all">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-base font-extrabold text-white">4 : 3</span>
+                  <span class="text-sm font-extrabold text-white">4 : 3</span>
                   <span class="w-4 h-4 rounded-full border-2 border-indigo-500 bg-indigo-500 flex items-center justify-center check-dot">
                     <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                   </span>
                 </div>
-                <p class="text-xs text-slate-400 group-hover:text-slate-300">클래식 CRT / SD / 1.33:1 규격</p>
+                <p class="text-[11px] text-slate-400">CRT / SD / 1.33:1</p>
               </button>
 
-              <!-- 5:4 Option -->
-              <button type="button" data-ratio="5:4" class="ratio-btn group relative p-3.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
+              <button type="button" data-ratio="5:4" data-name="5:4 (모니터)" class="ratio-btn group relative p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-base font-extrabold text-white">5 : 4</span>
+                  <span class="text-sm font-extrabold text-white">5 : 4</span>
                   <span class="w-4 h-4 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
                     <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
                   </span>
                 </div>
-                <p class="text-xs text-slate-400 group-hover:text-slate-300">1280x1024 모니터 / 1.25:1 규격</p>
+                <p class="text-[11px] text-slate-400">1280x1024 / 1.25:1</p>
+              </button>
+            </div>
+
+            <!-- Fold / Flip Ratios Group -->
+            <div id="foldFlipRatiosGroup" class="hidden grid-cols-2 gap-2.5">
+              <button type="button" data-ratio="6:5" data-name="폴드 메인(6:5)" class="ratio-btn group relative p-2.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
+                <div class="flex items-center justify-between mb-0.5">
+                  <span class="text-xs font-bold text-white">📖 폴드 메인</span>
+                  <span class="w-3.5 h-3.5 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
+                    <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
+                  </span>
+                </div>
+                <p class="text-[10px] text-slate-400">6:5 (내부 대화면)</p>
+              </button>
+
+              <button type="button" data-ratio="22:9" data-name="플립 펼침(22:9)" class="ratio-btn group relative p-2.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
+                <div class="flex items-center justify-between mb-0.5">
+                  <span class="text-xs font-bold text-white">📱 플립 전체</span>
+                  <span class="w-3.5 h-3.5 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
+                    <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
+                  </span>
+                </div>
+                <p class="text-[10px] text-slate-400">22:9 (2.44:1 울트라)</p>
+              </button>
+
+              <button type="button" data-ratio="23.1:9" data-name="폴드 커버(23.1:9)" class="ratio-btn group relative p-2.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
+                <div class="flex items-center justify-between mb-0.5">
+                  <span class="text-xs font-bold text-white">📲 폴드 커버</span>
+                  <span class="w-3.5 h-3.5 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
+                    <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
+                  </span>
+                </div>
+                <p class="text-[10px] text-slate-400">23.1:9 (외부 화면)</p>
+              </button>
+
+              <button type="button" data-ratio="1:1" data-name="플립 윈도우(1:1)" class="ratio-btn group relative p-2.5 rounded-2xl border-2 border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition-all">
+                <div class="flex items-center justify-between mb-0.5">
+                  <span class="text-xs font-bold text-white">🔲 플립 윈도우</span>
+                  <span class="w-3.5 h-3.5 rounded-full border-2 border-slate-600 flex items-center justify-center check-dot">
+                    <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
+                  </span>
+                </div>
+                <p class="text-[10px] text-slate-400">1:1 (정사각형 커버)</p>
               </button>
             </div>
           </div>
@@ -328,14 +365,13 @@
             </button>
             <div class="flex items-center justify-center gap-2 text-[11px] text-slate-400">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              <span>원본 선명도 자동 보존 · 안드로이드 탐색(스킵) 완벽 호환</span>
+              <span>삼성 및 안드로이드 타임라인 탐색(스킵) 완벽 호환</span>
             </div>
           </div>
-
         </div>
 
-        <!-- Render Progress Card (변환 진행 시 표시) -->
-        <div id="progressCard" class="hidden glass-panel rounded-3xl p-5 border border-indigo-500/30 bg-indigo-950/20 flex flex-col gap-3 animate-pulse-subtle">
+        <!-- Render Progress Card -->
+        <div id="progressCard" class="hidden glass-panel rounded-3xl p-5 border border-indigo-500/30 bg-indigo-950/20 flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
@@ -344,7 +380,6 @@
             <span id="percentText" class="text-xs font-mono font-bold text-indigo-400">0%</span>
           </div>
 
-          <!-- Progress Bar -->
           <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden p-0.5">
             <div id="progressBar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full w-0 transition-all duration-150"></div>
           </div>
@@ -354,11 +389,8 @@
             <button id="cancelExportBtn" class="text-rose-400 hover:text-rose-300 font-semibold">취소</button>
           </div>
         </div>
-
       </div>
-
     </div>
-
   </main>
 
   <!-- Toast Notification Box -->
@@ -378,14 +410,15 @@
       videoDuration: 0,
       origWidth: 0,
       origHeight: 0,
-      fitMode: 'stretch', // 'stretch' (당기기) or 'crop' (자르기)
-      targetRatio: '4:3', // '4:3' or '5:4'
-      stretchType: 'linear', // 'linear' or 'smart'
-      qualityPreset: 'originalHeight',
+      fitMode: 'stretch', // 'stretch' or 'crop'
+      targetRatio: '4:3',
+      deviceRatioValue: 9 / 16,
+      deviceRatioText: '9:16',
+      stretchType: 'linear',
       selectedMime: '',
       selectedExt: 'mp4',
-      bitrateMbps: 8.0, // 최적 균형 기본 비트레이트 자동 적용
-      targetFps: 30,    // 부드러운 표준 30fps
+      bitrateMbps: 8.0,
+      targetFps: 30,
       renderWidth: 1440,
       renderHeight: 1080,
       isOriginalView: false,
@@ -413,8 +446,17 @@
     const fileNameDisplay = document.getElementById('fileNameDisplay');
     const sourceResBadge = document.getElementById('sourceResBadge');
     const targetResBadge = document.getElementById('targetResBadge');
-    const targetDimensionInfo = document.getElementById('targetDimensionInfo');
     const stretchModeLabel = document.getElementById('stretchModeLabel');
+    const deviceRatioBtn = document.getElementById('deviceRatioBtn');
+    const deviceRatioLabel = document.getElementById('deviceRatioLabel');
+    const deviceRatioSub = document.getElementById('deviceRatioSub');
+    const detectedRatioBadge = document.getElementById('detectedRatioBadge');
+    const targetRatioTag = document.getElementById('targetRatioTag');
+
+    const tabStandardBtn = document.getElementById('tabStandardBtn');
+    const tabFoldFlipBtn = document.getElementById('tabFoldFlipBtn');
+    const standardRatiosGroup = document.getElementById('standardRatiosGroup');
+    const foldFlipRatiosGroup = document.getElementById('foldFlipRatiosGroup');
     
     const playPauseBtn = document.getElementById('playPauseBtn');
     const playIcon = document.getElementById('playIcon');
@@ -429,7 +471,6 @@
     const toggleOriginalBtn = document.getElementById('toggleOriginalBtn');
     const changeFileBtn = document.getElementById('changeFileBtn');
     
-    const ratioBtns = document.querySelectorAll('.ratio-btn');
     const startExportBtn = document.getElementById('startExportBtn');
     const progressCard = document.getElementById('progressCard');
     const progressBar = document.getElementById('progressBar');
@@ -442,7 +483,66 @@
     const modeDescription = document.getElementById('modeDescription');
     const activeModeBadge = document.getElementById('activeModeBadge');
 
-    // 최적 호환 코덱 자동 감지 (별도 설정 창 없이 내부에서 자동 처리)
+    function detectCurrentDeviceRatio() {
+      const sw = window.screen.width * (window.devicePixelRatio || 1);
+      const sh = window.screen.height * (window.devicePixelRatio || 1);
+      const isPortrait = sh >= sw;
+      const longEdge = Math.max(sw, sh);
+      const shortEdge = Math.min(sw, sh);
+      const ratioFloat = longEdge / shortEdge;
+
+      let ratioText = '19.5:9';
+      let wRatio = 9;
+      let hRatio = 19.5;
+
+      if (ratioFloat >= 2.15) {
+        ratioText = '20:9';
+        wRatio = 9;
+        hRatio = 20;
+      } else if (ratioFloat >= 2.05) {
+        ratioText = '19.5:9';
+        wRatio = 9;
+        hRatio = 19.5;
+      } else if (ratioFloat >= 1.95) {
+        ratioText = '19:9';
+        wRatio = 9;
+        hRatio = 19;
+      } else if (ratioFloat >= 1.85) {
+        ratioText = '18.5:9';
+        wRatio = 9;
+        hRatio = 18.5;
+      } else if (ratioFloat >= 1.7) {
+        ratioText = '16:9';
+        wRatio = 9;
+        hRatio = 16;
+      } else {
+        const rounded = (longEdge / shortEdge).toFixed(2);
+        ratioText = `${rounded}:1`;
+        wRatio = 1;
+        hRatio = parseFloat(rounded);
+      }
+
+      if (isPortrait) {
+        state.deviceRatioValue = wRatio / hRatio;
+        state.deviceRatioText = `${ratioText} (세로 전체)`;
+      } else {
+        state.deviceRatioValue = hRatio / wRatio;
+        state.deviceRatioText = `${ratioText} (가로 전체)`;
+      }
+
+      if (deviceRatioLabel) {
+        deviceRatioLabel.textContent = `📱 내 화면 전체맞춤 (${state.deviceRatioText})`;
+      }
+      if (detectedRatioBadge) {
+        detectedRatioBadge.textContent = `${Math.round(sw)}x${Math.round(sh)} 감지됨`;
+      }
+      if (deviceRatioSub) {
+        deviceRatioSub.textContent = `현재 기기 화면비율(${state.deviceRatioText})로 꽉 채워 여백 없이 변환합니다.`;
+      }
+    }
+    detectCurrentDeviceRatio();
+    window.addEventListener('resize', detectCurrentDeviceRatio);
+
     function detectBestCodec() {
       const candidates = [
         { mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', ext: 'mp4' },
@@ -484,7 +584,6 @@
       }, 3500);
     }
 
-    // Helper: format seconds to M:SS
     function formatTime(secs) {
       if (isNaN(secs)) return '0:00';
       const m = Math.floor(secs / 60);
@@ -495,28 +594,40 @@
     function calculateOutputDimensions() {
       if (!state.origWidth || !state.origHeight) return;
 
-      const [rW, rH] = state.targetRatio.split(':').map(Number);
-      const targetRatioValue = rW / rH;
+      let targetRatioValue;
+      let ratioLabel = state.targetRatio;
 
-      // 화질 손실 방지: 원본 높이를 100% 그대로 유지하여 고해상도 출력
+      if (state.targetRatio === 'device') {
+        targetRatioValue = state.deviceRatioValue;
+        ratioLabel = state.deviceRatioText;
+      } else {
+        const parts = state.targetRatio.split(':').map(Number);
+        targetRatioValue = parts[0] / parts[1];
+      }
+
       let targetHeight = state.origHeight;
       let targetWidth = Math.round(targetHeight * targetRatioValue);
 
-      // 비디오 코덱 안전성 보장 (짝수 픽셀 정렬)
+      if (targetWidth > 3840) {
+        targetWidth = 3840;
+        targetHeight = Math.round(targetWidth / targetRatioValue);
+      } else if (targetHeight > 2160) {
+        targetHeight = 2160;
+        targetWidth = Math.round(targetHeight * targetRatioValue);
+      }
+
       if (targetWidth % 2 !== 0) targetWidth += 1;
       if (targetHeight % 2 !== 0) targetHeight += 1;
 
       state.renderWidth = targetWidth;
       state.renderHeight = targetHeight;
 
-      // Canvas 크기 동기화
       previewCanvas.width = targetWidth;
       previewCanvas.height = targetHeight;
 
-      // 배지 및 안내 텍스트 갱신
-      targetResBadge.textContent = `${targetWidth}x${targetHeight} (${state.targetRatio})`;
-      if (targetDimensionInfo) {
-        targetDimensionInfo.textContent = `${targetWidth}x${targetHeight} (원본화질)`;
+      targetResBadge.textContent = `${targetWidth}x${targetHeight} (${ratioLabel})`;
+      if (targetRatioTag) {
+        targetRatioTag.textContent = `${ratioLabel} 선택됨`;
       }
     }
 
@@ -529,11 +640,9 @@
       const cw = previewCanvas.width;
       const ch = previewCanvas.height;
 
-      // Clear canvas
       ctx.clearRect(0, 0, cw, ch);
 
       if (state.isOriginalView) {
-        // 원본 비교 모드: 검은 레터박스로 원본 비율 유지 표시
         ctx.fillStyle = '#05070e';
         ctx.fillRect(0, 0, cw, ch);
         
@@ -555,19 +664,16 @@
         ctx.drawImage(sourceVideo, 0, 0, state.origWidth, state.origHeight, dx, dy, dw, dh);
 
       } else if (state.fitMode === 'crop') {
-        // [자르기(Crop) 모드] 왜곡 없이 목표 비율에 맞춰 중앙 기준 확대 크롭
         const origAspect = state.origWidth / state.origHeight;
         const targetAspect = cw / ch;
 
         let sx, sy, sw, sh;
         if (origAspect > targetAspect) {
-          // 원본이 더 가로로 넓은 경우: 좌우를 자름
           sh = state.origHeight;
           sw = state.origHeight * targetAspect;
           sx = (state.origWidth - sw) / 2;
           sy = 0;
         } else {
-          // 원본이 더 세로로 긴 경우: 상하를 자름
           sw = state.origWidth;
           sh = state.origWidth / targetAspect;
           sx = 0;
@@ -576,23 +682,9 @@
 
         ctx.drawImage(sourceVideo, sx, sy, sw, sh, 0, 0, cw, ch);
 
-      } else if (state.stretchType === 'linear') {
-        // [당기기(Stretch) - 균등] 자르지 않고 캔버스 전체에 맞춰 늘림/줄임
+      } else {
+        // [당기기(Stretch)] 원본 픽셀 전체를 캔버스에 꽉 채움
         ctx.drawImage(sourceVideo, 0, 0, state.origWidth, state.origHeight, 0, 0, cw, ch);
-
-      } else if (state.stretchType === 'smart') {
-        // [당기기(Stretch) - 스마트 아나모픽] 중앙 보호 & 외곽 분할 렌더링
-        const centerRatio = 0.5;
-        const srcLeftW = state.origWidth * ((1 - centerRatio) / 2);
-        const srcCenterW = state.origWidth * centerRatio;
-        const srcRightW = srcLeftW;
-
-        const dstCenterW = cw * 0.58; 
-        const dstSideW = (cw - dstCenterW) / 2;
-
-        ctx.drawImage(sourceVideo, 0, 0, srcLeftW, state.origHeight, 0, 0, dstSideW, ch);
-        ctx.drawImage(sourceVideo, srcLeftW, 0, srcCenterW, state.origHeight, dstSideW, 0, dstCenterW, ch);
-        ctx.drawImage(sourceVideo, srcLeftW + srcCenterW, 0, srcRightW, state.origHeight, dstSideW + dstCenterW, 0, dstSideW, ch);
       }
 
       if (!state.isExporting) {
@@ -617,12 +709,9 @@
         state.origHeight = sourceVideo.videoHeight;
         state.videoDuration = sourceVideo.duration;
 
-        // 원본 비율 계산 및 뱃지 업데이트
         const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
         const divisor = gcd(state.origWidth, state.origHeight);
-        const aspectSimple = `${state.origWidth / divisor}:${state.origHeight / divisor}`;
         
-        // 대표 비율 레이블
         const floatRatio = (state.origWidth / state.origHeight).toFixed(2);
         let ratioName = `${floatRatio}:1`;
         if (Math.abs(floatRatio - 1.78) < 0.05) ratioName = '16:9';
@@ -632,7 +721,6 @@
         else if (Math.abs(floatRatio - 0.56) < 0.05) ratioName = '9:16 (세로)';
 
         sourceResBadge.textContent = `${state.origWidth}x${state.origHeight} (${ratioName})`;
-
         timeDuration.textContent = formatTime(state.videoDuration);
         seekBar.max = state.videoDuration;
         seekBar.value = 0;
@@ -640,12 +728,12 @@
         calculateOutputDimensions();
 
         dropzone.classList.add('hidden');
+        if (urlInputSection) urlInputSection.classList.add('hidden');
         workspace.classList.remove('hidden');
         workspace.classList.add('flex');
 
         showToast(`'${file.name}' 비디오가 로드되었습니다.`);
 
-        // 렌더링 루프 시작
         if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
         state.animationFrameId = requestAnimationFrame(renderFrame);
       };
@@ -654,40 +742,6 @@
         showToast('동영상을 디코딩할 수 없습니다. 지원 코덱을 확인해주세요.', true);
       };
     }
-
-    // Drag & Drop Listeners
-    videoInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) {
-        handleVideoFile(e.target.files[0]);
-      }
-    });
-
-    dropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropzone.classList.add('border-indigo-500');
-    });
-
-    dropzone.addEventListener('dragleave', () => {
-      dropzone.classList.remove('border-indigo-500');
-    });
-
-    dropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropzone.classList.remove('border-indigo-500');
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleVideoFile(e.dataTransfer.files[0]);
-      }
-    });
-
-    changeFileBtn.addEventListener('click', () => {
-      sourceVideo.pause();
-      videoInput.value = '';
-      if (videoUrlInput) videoUrlInput.value = '';
-      workspace.classList.remove('flex');
-      workspace.classList.add('hidden');
-      dropzone.classList.remove('hidden');
-      if (urlInputSection) urlInputSection.classList.remove('hidden');
-    });
 
     function setUrlLoading(isLoading) {
       if (!loadUrlBtn) return;
@@ -717,9 +771,8 @@
       const trimmedUrl = url.trim();
       setUrlLoading(true);
 
-      let targetTitle = customName;
+      let resolvedName = customName;
       state.file = null;
-      let resolvedName = targetTitle;
       if (!resolvedName) {
         try {
           const pathname = new URL(trimmedUrl).pathname;
@@ -740,9 +793,6 @@
         state.origHeight = sourceVideo.videoHeight;
         state.videoDuration = sourceVideo.duration;
 
-        const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-        const divisor = gcd(state.origWidth, state.origHeight);
-        
         const floatRatio = (state.origWidth / state.origHeight).toFixed(2);
         let ratioName = `${floatRatio}:1`;
         if (Math.abs(floatRatio - 1.78) < 0.05) ratioName = '16:9';
@@ -752,7 +802,6 @@
         else if (Math.abs(floatRatio - 0.56) < 0.05) ratioName = '9:16 (세로)';
 
         sourceResBadge.textContent = `${state.origWidth}x${state.origHeight} (${ratioName})`;
-
         timeDuration.textContent = formatTime(state.videoDuration);
         seekBar.max = state.videoDuration;
         seekBar.value = 0;
@@ -772,57 +821,113 @@
 
       sourceVideo.onerror = () => {
         setUrlLoading(false);
-        showToast('영상을 불러올 수 없습니다. 직접 재생 가능한 비디오 주소(MP4/WebM)인지 확인해주세요.', true);
+        showToast('동영상을 불러올 수 없습니다. 직링크 및 CORS 정책을 확인해주세요.', true);
       };
     }
 
-    // 전역 클립보드(Ctrl+V) 붙여넣기 지원
-    window.addEventListener('paste', (e) => {
-      if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
-        const pastedFile = e.clipboardData.files[0];
-        if (pastedFile.type.startsWith('video/')) {
-          handleVideoFile(pastedFile);
-          showToast('클립보드에서 비디오 파일을 가져왔습니다.');
-          return;
-        }
-      }
-
-      const pastedText = e.clipboardData?.getData('text');
-      if (pastedText && (pastedText.startsWith('http://') || pastedText.startsWith('https://'))) {
-        if (videoUrlInput) videoUrlInput.value = pastedText;
-        loadVideoFromUrl(pastedText);
+    // Drag & Drop Listeners
+    videoInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleVideoFile(e.target.files[0]);
       }
     });
 
-    // URL 입력 버튼 및 엔터키 이벤트 리스너 등록
-    if (loadUrlBtn && videoUrlInput) {
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('border-indigo-500');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('border-indigo-500');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-indigo-500');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleVideoFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    if (loadUrlBtn) {
       loadUrlBtn.addEventListener('click', () => {
         loadVideoFromUrl(videoUrlInput.value);
       });
+    }
 
+    if (videoUrlInput) {
       videoUrlInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
+          e.preventDefault();
           loadVideoFromUrl(videoUrlInput.value);
         }
       });
     }
 
-    // 샘플 프리셋 버튼 리스너 등록
     sampleBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const sampleUrl = btn.getAttribute('data-sample');
-        const sampleTitle = btn.getAttribute('data-title') || 'sample.mp4';
+        const sampleTitle = btn.getAttribute('data-title');
         if (videoUrlInput) videoUrlInput.value = sampleUrl;
         loadVideoFromUrl(sampleUrl, sampleTitle);
       });
     });
 
-    // Override handleVideoFile to also hide urlInputSection
-    const originalHandleVideoFile = handleVideoFile;
-    handleVideoFile = function(file) {
-      if (urlInputSection) urlInputSection.classList.add('hidden');
-      originalHandleVideoFile(file);
-    };
+    changeFileBtn.addEventListener('click', () => {
+      sourceVideo.pause();
+      videoInput.value = '';
+      if (videoUrlInput) videoUrlInput.value = '';
+      workspace.classList.remove('flex');
+      workspace.classList.add('hidden');
+      dropzone.classList.remove('hidden');
+      if (urlInputSection) urlInputSection.classList.remove('hidden');
+    });
+
+    // Tab switching for Standard vs Fold/Flip presets
+    if (tabStandardBtn && tabFoldFlipBtn) {
+      tabStandardBtn.addEventListener('click', () => {
+        tabStandardBtn.className = "py-1.5 px-2 rounded-lg bg-indigo-600 text-white font-semibold transition-all";
+        tabFoldFlipBtn.className = "py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all flex items-center justify-center gap-1";
+        standardRatiosGroup.classList.remove('hidden');
+        standardRatiosGroup.classList.add('grid');
+        foldFlipRatiosGroup.classList.add('hidden');
+        foldFlipRatiosGroup.classList.remove('grid');
+      });
+
+      tabFoldFlipBtn.addEventListener('click', () => {
+        tabFoldFlipBtn.className = "py-1.5 px-2 rounded-lg bg-indigo-600 text-white font-semibold transition-all flex items-center justify-center gap-1";
+        tabStandardBtn.className = "py-1.5 px-2 rounded-lg text-slate-400 hover:text-slate-200 font-medium transition-all";
+        foldFlipRatiosGroup.classList.remove('hidden');
+        foldFlipRatiosGroup.classList.add('grid');
+        standardRatiosGroup.classList.add('hidden');
+        standardRatiosGroup.classList.remove('grid');
+      });
+    }
+
+    // Ratio button selection handling
+    document.querySelectorAll('.ratio-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.ratio-btn').forEach(b => {
+          b.classList.remove('border-indigo-600', 'bg-indigo-600/15');
+          b.classList.add('border-slate-800', 'bg-slate-900/60');
+          const dot = b.querySelector('.check-dot span');
+          if (dot) dot.classList.replace('bg-white', 'bg-transparent');
+          b.querySelector('.check-dot')?.classList.replace('bg-indigo-500', 'bg-transparent');
+        });
+
+        btn.classList.remove('border-slate-800', 'bg-slate-900/60');
+        btn.classList.add('border-indigo-600', 'bg-indigo-600/15');
+        const activeDot = btn.querySelector('.check-dot span');
+        if (activeDot) activeDot.classList.replace('bg-transparent', 'bg-white');
+        btn.querySelector('.check-dot')?.classList.replace('bg-transparent', 'bg-indigo-500');
+
+        state.targetRatio = btn.getAttribute('data-ratio');
+        const ratioDisplayName = btn.getAttribute('data-name') || state.targetRatio;
+        calculateOutputDimensions();
+        
+        showToast(`목표 비율을 [${ratioDisplayName}]로 설정했습니다.`);
+      });
+    });
 
     function togglePlay() {
       if (sourceVideo.paused || sourceVideo.ended) {
@@ -875,33 +980,12 @@
       volumeSlider.value = sourceVideo.muted ? 0 : sourceVideo.volume;
     });
 
-    ratioBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        ratioBtns.forEach(b => {
-          b.classList.remove('border-indigo-600', 'bg-indigo-600/15');
-          b.classList.add('border-slate-800', 'bg-slate-900/60');
-          const dot = b.querySelector('.check-dot span');
-          if (dot) dot.classList.replace('bg-white', 'bg-transparent');
-          b.querySelector('.check-dot')?.classList.replace('bg-indigo-500', 'bg-transparent');
-        });
-
-        btn.classList.remove('border-slate-800', 'bg-slate-900/60');
-        btn.classList.add('border-indigo-600', 'bg-indigo-600/15');
-        const activeDot = btn.querySelector('.check-dot span');
-        if (activeDot) activeDot.classList.replace('bg-transparent', 'bg-white');
-        btn.querySelector('.check-dot')?.classList.replace('bg-transparent', 'bg-indigo-500');
-
-        state.targetRatio = btn.getAttribute('data-ratio');
-        calculateOutputDimensions();
-      });
-    });
-
     function updateModeDisplay() {
       if (state.fitMode === 'stretch') {
         modeStretchBtn.className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow-md transition-all";
         modeCropBtn.className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-transparent text-slate-400 hover:text-white font-medium text-xs transition-all";
         
-        modeDescription.textContent = "원본 영상을 1px도 자르지 않고 목표 비율(4:3 / 5:4)로 꽉 채워 당깁니다.";
+        modeDescription.textContent = "원본 영상을 1px도 자르지 않고 목표 비율로 꽉 채워 당깁니다.";
         activeModeBadge.textContent = "당기기 (100% 보존)";
         activeModeBadge.className = "text-[11px] px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-medium";
         stretchModeLabel.textContent = '화면 당김 모드';
@@ -929,7 +1013,6 @@
       showToast('화면 채움 방식을 [자르기(Crop)]로 변경했습니다.');
     });
 
-    // Toggle Original View
     toggleOriginalBtn.addEventListener('click', () => {
       state.isOriginalView = !state.isOriginalView;
       toggleOriginalBtn.classList.toggle('bg-indigo-600/20', state.isOriginalView);
@@ -941,12 +1024,10 @@
       } else if (state.fitMode === 'crop') {
         stretchModeLabel.textContent = '중앙 자르기(Crop) 모드';
       } else {
-        stretchModeLabel.textContent = state.stretchType === 'linear' ? '균일 당김 모드' : '스마트 아나모픽 당김';
+        stretchModeLabel.textContent = '화면 당김 모드';
       }
     });
 
-    // 안드로이드 및 모바일 동영상 플레이어에서 탐색바(Seekbar) 이동 및 앞뒤 스킵이 먹통되지 않도록
-    // MP4/WebM 파일 헤더의 Duration과 Timecode 메타데이터를 정밀 패치하는 함수
     async function patchMp4WithSidxAndMfra(rawBlob, durationSec) {
       const buffer = await rawBlob.arrayBuffer();
       const view = new DataView(buffer);
@@ -961,7 +1042,6 @@
         );
       }
 
-      // 1. 최상위 MP4 박스 파싱
       const boxes = [];
       let pos = 0;
       while (pos + 8 <= len) {
@@ -994,55 +1074,19 @@
         return null;
       }
 
-      // 2. mvhd / tkhd / mdhd의 timescale 및 duration 보정
       let movieTimescale = 1000;
-
       const mvhd = findChildBox(moov.offset + moov.headerSize, moov.offset + moov.size, 'mvhd');
       if (mvhd) {
         const ver = view.getUint8(mvhd.offset + 8);
         if (ver === 0) {
           movieTimescale = view.getUint32(mvhd.offset + 20) || 1000;
-          const targetDur = Math.round(durationSec * movieTimescale);
-          view.setUint32(mvhd.offset + 24, targetDur);
+          view.setUint32(mvhd.offset + 24, Math.round(durationSec * movieTimescale));
         } else if (ver === 1) {
           movieTimescale = view.getUint32(mvhd.offset + 28) || 1000;
-          const targetDur = BigInt(Math.round(durationSec * movieTimescale));
-          view.setBigUint64(mvhd.offset + 32, targetDur);
+          view.setBigUint64(mvhd.offset + 32, BigInt(Math.round(durationSec * movieTimescale)));
         }
       }
 
-      let pTrak = moov.offset + moov.headerSize;
-      while (pTrak + 8 < moov.offset + moov.size) {
-        const trakBox = findChildBox(pTrak, moov.offset + moov.size, 'trak');
-        if (!trakBox) break;
-        
-        const tkhd = findChildBox(trakBox.offset + 8, trakBox.offset + trakBox.size, 'tkhd');
-        if (tkhd) {
-          const ver = view.getUint8(tkhd.offset + 8);
-          if (ver === 0) {
-            view.setUint32(tkhd.offset + 28, Math.round(durationSec * movieTimescale));
-          } else if (ver === 1) {
-            view.setBigUint64(tkhd.offset + 36, BigInt(Math.round(durationSec * movieTimescale)));
-          }
-        }
-
-        const mdia = findChildBox(trakBox.offset + 8, trakBox.offset + trakBox.size, 'mdia');
-        if (mdia) {
-          const mdhd = findChildBox(mdia.offset + 8, mdia.offset + mdia.size, 'mdhd');
-          if (mdhd) {
-            const ver = view.getUint8(mdhd.offset + 8);
-            const mdhdTimescale = (ver === 0) ? (view.getUint32(mdhd.offset + 20) || movieTimescale) : (view.getUint32(mdhd.offset + 28) || movieTimescale);
-            if (ver === 0) {
-              view.setUint32(mdhd.offset + 24, Math.round(durationSec * mdhdTimescale));
-            } else if (ver === 1) {
-              view.setBigUint64(mdhd.offset + 32, BigInt(Math.round(durationSec * mdhdTimescale)));
-            }
-          }
-        }
-        pTrak = trakBox.offset + trakBox.size;
-      }
-
-      // 3. moof & mdat 프래그먼트 수집
       const fragments = [];
       for (let i = 0; i < boxes.length; i++) {
         if (boxes[i].type === 'moof') {
@@ -1064,24 +1108,21 @@
         return new Blob([buffer], { type: 'video/mp4' });
       }
 
-      // 4. 삼성 및 안드로이드 비디오 플레이어의 탐색/스킵 활성화를 위한 'sidx' (Segment Index) 박스 생성
+      // Samsung / Android timeline seeking 'sidx' box construction
       const numFrags = fragments.length;
       const sidxSize = 32 + numFrags * 12;
       const sidxBuffer = new ArrayBuffer(sidxSize);
       const sidxView = new DataView(sidxBuffer);
 
       sidxView.setUint32(0, sidxSize);
-      sidxView.setUint8(4, 0x73); // 's'
-      sidxView.setUint8(5, 0x69); // 'i'
-      sidxView.setUint8(6, 0x64); // 'd'
-      sidxView.setUint8(7, 0x78); // 'x'
-      sidxView.setUint32(8, 0);   // version = 0, flags = 0
-      sidxView.setUint32(12, 1);  // reference_ID (track 1)
+      sidxView.setUint8(4, 0x73); sidxView.setUint8(5, 0x69); sidxView.setUint8(6, 0x64); sidxView.setUint8(7, 0x78); // 'sidx'
+      sidxView.setUint32(8, 0);
+      sidxView.setUint32(12, 1);
       sidxView.setUint32(16, movieTimescale);
-      sidxView.setUint32(20, 0);  // earliest_presentation_time = 0
-      sidxView.setUint32(24, 0);  // first_offset = 0
-      sidxView.setUint16(28, 0);  // reserved
-      sidxView.setUint16(30, numFrags); // reference_count
+      sidxView.setUint32(20, 0);
+      sidxView.setUint32(24, 0);
+      sidxView.setUint16(28, 0);
+      sidxView.setUint16(30, numFrags);
 
       const fragDurUnits = Math.max(1, Math.round((durationSec * movieTimescale) / numFrags));
 
@@ -1092,15 +1133,12 @@
           ? Math.max(1, Math.round(durationSec * movieTimescale) - fragDurUnits * (numFrags - 1))
           : fragDurUnits;
 
-        // reference_type = 0 (미디어), referenced_size = 프래그먼트 바이트 크기
-        const refSizeField = (fragments[i].totalSize & 0x7FFFFFFF);
-        sidxView.setUint32(entryOffset, refSizeField);
+        sidxView.setUint32(entryOffset, (fragments[i].totalSize & 0x7FFFFFFF));
         sidxView.setUint32(entryOffset + 4, dur);
-        // starts_with_SAP=1, SAP_type=1 (키프레임 접근 가능 신호) -> 0x90000000
-        sidxView.setUint32(entryOffset + 8, 0x90000000);
+        sidxView.setUint32(entryOffset + 8, 0x90000000); // starts_with_SAP=1
       }
 
-      // 5. 'mfra' (Movie Fragment Random Access) 박스 생성 및 파일 끝단 첨부
+      // 'mfra' trailer box construction
       const tfraSize = 24 + numFrags * 12;
       const mfroSize = 16;
       const mfraSize = 8 + tfraSize + mfroSize;
@@ -1109,12 +1147,11 @@
 
       mfraView.setUint32(0, mfraSize);
       mfraView.setUint8(4, 0x6d); mfraView.setUint8(5, 0x66); mfraView.setUint8(6, 0x72); mfraView.setUint8(7, 0x61); // 'mfra'
-
       mfraView.setUint32(8, tfraSize);
       mfraView.setUint8(12, 0x74); mfraView.setUint8(13, 0x66); mfraView.setUint8(14, 0x72); mfraView.setUint8(15, 0x61); // 'tfra'
-      mfraView.setUint32(16, 0); // version 0, flags 0
-      mfraView.setUint32(20, 1); // track_ID = 1
-      mfraView.setUint32(24, 0); // sizes
+      mfraView.setUint32(16, 0);
+      mfraView.setUint32(20, 1);
+      mfraView.setUint32(24, 0);
       mfraView.setUint32(28, numFrags);
 
       let currentMoofOffset = moov.offset + moov.size + sidxSize;
@@ -1135,7 +1172,6 @@
       mfraView.setUint32(mfroOffset + 8, 0);
       mfraView.setUint32(mfroOffset + 12, mfraSize);
 
-      // 6. [ftyp + moov] + [sidx] + [moof/mdat 데이터들] + [mfra] 순으로 완제품 조립
       const moovEnd = moov.offset + moov.size;
       const partA = buffer.slice(0, moovEnd);
       const partC = buffer.slice(moovEnd);
@@ -1178,10 +1214,8 @@
       startExportBtn.classList.add('opacity-50', 'cursor-not-allowed');
       progressCard.classList.remove('hidden');
 
-      showToast('모바일 탐색 호환 인코딩을 준비하고 있습니다...');
+      showToast('모바일 탐색 호환 인코딩을 시작합니다...');
 
-      // 1. 오디오 스트림 안전 연결 (인코딩 파일 오류 방지)
-      let combinedStream;
       const fps = state.targetFps || 30;
       const canvasStream = previewCanvas.captureStream(fps);
 
@@ -1189,20 +1223,15 @@
       try {
         if (sourceVideo.captureStream) {
           const st = sourceVideo.captureStream();
-          if (st.getAudioTracks().length > 0) {
-            audioTrack = st.getAudioTracks()[0];
-          }
+          if (st.getAudioTracks().length > 0) audioTrack = st.getAudioTracks()[0];
         } else if (sourceVideo.mozCaptureStream) {
           const st = sourceVideo.mozCaptureStream();
-          if (st.getAudioTracks().length > 0) {
-            audioTrack = st.getAudioTracks()[0];
-          }
+          if (st.getAudioTracks().length > 0) audioTrack = st.getAudioTracks()[0];
         }
       } catch (err) {
-        console.warn('Direct audio capture:', err);
+        console.warn('Direct audio capture fallback:', err);
       }
 
-      // Web Audio 대체 시도 (소리가 있는 경우에만 안전하게 결합)
       if (!audioTrack) {
         try {
           if (!state.audioContext) {
@@ -1221,18 +1250,16 @@
             audioTrack = state.audioDest.stream.getAudioTracks()[0];
           }
         } catch (err) {
-          console.warn('Web Audio node capture fallback:', err);
+          console.warn('Web Audio capture fallback:', err);
         }
       }
 
-      // 오디오 트랙이 정상적으로 존재할 때만 합침 (무음 영상에서 잘못된 오디오 헤더로 인한 코덱 에러 방지)
       const tracks = [...canvasStream.getVideoTracks()];
       if (audioTrack && !sourceVideo.muted) {
         tracks.push(audioTrack);
       }
-      combinedStream = new MediaStream(tracks);
+      const combinedStream = new MediaStream(tracks);
 
-      // 2. 인코더 및 비트레이트 설정
       const mimeType = state.selectedMime || 'video/mp4';
       const bps = Math.round(state.bitrateMbps * 1000 * 1000);
 
@@ -1243,7 +1270,6 @@
           videoBitsPerSecond: bps
         });
       } catch (e) {
-        console.warn('Fallback basic recorder:', e);
         state.mediaRecorder = new MediaRecorder(combinedStream);
       }
 
@@ -1257,18 +1283,17 @@
         const finalBlobType = state.mediaRecorder.mimeType || mimeType;
         const rawBlob = new Blob(state.recordedChunks, { type: finalBlobType });
         
-        // 삼성 및 모바일 플레이어 탐색(스킵)을 위한 sidx & Cues 인덱스 자동 주입
         const totalDuration = state.videoDuration || sourceVideo.duration || 1;
         const result = await fixVideoSeekableDuration(rawBlob, totalDuration, finalBlobType);
 
         const url = URL.createObjectURL(result.blob);
-
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
         const baseName = state.file ? state.file.name.replace(/\.[^/.]+$/, "") : "stretched_video";
         const modeSuffix = state.fitMode === 'crop' ? 'Cropped' : 'Stretched';
-        a.download = `${baseName}_${state.targetRatio.replace(':', 'x')}_${modeSuffix}.${result.ext}`;
+        const ratioClean = state.targetRatio.replace(':', 'x').replace('.', '_');
+        a.download = `${baseName}_${ratioClean}_${modeSuffix}.${result.ext}`;
         document.body.appendChild(a);
         a.click();
         
@@ -1278,10 +1303,9 @@
         }, 1000);
 
         finishExport();
-        showToast(`'${result.ext.toUpperCase()}' 변환 완료! 이제 삼성 갤러리 및 모든 비디오 플레이어에서 클립 이동/스킵이 정상 작동합니다.`);
+        showToast(`'${result.ext.toUpperCase()}' 변환 완료! 모든 플레이어에서 스킵 이동이 정상 작동합니다.`);
       };
 
-      // 렌더링 프레임 루프 동기화
       sourceVideo.currentTime = 0;
       sourceVideo.muted = false;
 
@@ -1322,8 +1346,6 @@
       progressCard.classList.add('hidden');
       progressBar.style.width = '0%';
       percentText.textContent = '0%';
-      
-      // 일반 렌더링 루프 복원
       requestAnimationFrame(renderFrame);
     }
 
@@ -1337,7 +1359,6 @@
       finishExport();
       showToast('변환이 취소되었습니다.');
     });
-
   </script>
 </body>
 </html>
